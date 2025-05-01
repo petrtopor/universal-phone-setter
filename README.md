@@ -88,6 +88,12 @@ Include the UMD build in your HTML file:
 - Run `npm install`.
 - Run `npm run build` to build the dist files.
 
+## Publishing New Versions (Automatic via GitHub Actions)
+
+This project uses GitHub Actions to automatically publish new versions to npm whenever changes are pushed to the main branch.
+
+Important: The pipeline will only successfully publish if the version in package.json has been incremented since the last published version on npm.
+
 ## License
 
 MIT
