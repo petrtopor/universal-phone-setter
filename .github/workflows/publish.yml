@@ -1,0 +1,33 @@
+name: Publish Package to npm
+
+on:
+  push:
+    branches:
+      - main # Запускать только при пуше в ветку main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest # Использовать последнюю версию Ubuntu в качестве среды выполнения
+    permissions:
+      contents: read # Нужны права на чтение репозитория для checkout
+      # id-token: write # Uncomment if using Provenance publishing (more secure, requires npm setup)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # Шаг для загрузки кода из репозитория
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4 # Шаг для настройки Node.js
+        with:
+          node-version: "20" # Укажите версию Node.js, которую вы используете (например, LTS)
+          registry-url: "https://registry.npmjs.org/" # Указываем на официальный реестр npm
+
+      - name: Install dependencies
+        run: npm ci # Используем 'ci' для быстрой и чистой установки по package-lock.json
+
+      - name: Build package
+        run: npm run build # Запускаем вашу команду сборки из package.json
+
+      - name: Publish package to npm
+        run: npm publish --access public # Публикуем пакет
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # Используем секретный токен npm
