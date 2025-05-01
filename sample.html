@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Universal Phone Setter Test</title>
+  </head>
+  <body>
+    <h1>Universal Phone Setter Test</h1>
+    <p>Click the button to set your phone number.</p>
+    <button id="set-phone-button">Set Phone Number</button>
+
+    <!-- Include the local UMD build from the dist directory -->
+    <script src="dist/index.umd.js"></script>
+
+    <script>
+      // Add event listener to the button
+      document
+        .getElementById("set-phone-button")
+        .addEventListener("click", async () => {
+          try {
+            console.log("Opening phone modal...");
+            // Call the setPhone function from the package
+            const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
+            if (savedPhoneNumber) {
+              console.log(`Phone number saved: ${savedPhoneNumber}`);
+            }
+          } catch (error) {
+            console.error("An error occurred:", error);
+          }
+        });
+    </script>
+  </body>
+</html>
