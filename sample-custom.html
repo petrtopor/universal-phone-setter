@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Тест Universal Phone Setter (Кастомный)</title>
+    <style>
+      /* Базовые стили для демонстрации */
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+      }
+      button {
+        cursor: pointer;
+      }
+
+      /* Стили для кастомных классов */
+      .my-custom-overlay {
+        backdrop-filter: blur(3px); /* Пример: блюр фона */
+        background-color: rgba(0, 50, 100, 0.6); /* Синеватый фон */
+      }
+
+      .my-custom-modal {
+        background: linear-gradient(
+          to bottom right,
+          #f0f4f8,
+          #d9e2ec
+        ); /* Градиентный фон */
+        border: 1px solid #b0c4de;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        padding: 30px;
+        min-width: 350px;
+      }
+
+      .my-custom-input {
+        border: 1px solid #778899;
+        padding: 12px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        font-size: 1em;
+        display: block; /* Убедимся что он блочный */
+        width: calc(100% - 26px); /* Учитываем padding */
+      }
+
+      .my-custom-save-button {
+        background-color: #28a745; /* Зеленый */
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 4px;
+        font-size: 1em;
+        width: 100%; /* Растягиваем */
+        display: block; /* Убедимся что он блочный */
+        transition: background-color 0.2s ease;
+      }
+      .my-custom-save-button:hover {
+        background-color: #218838;
+      }
+
+      .my-custom-success {
+        color: #155724; /* Темно-зеленый */
+        background-color: #d4edda; /* Светло-зеленый фон */
+        border: 1px solid #c3e6cb;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 15px 0;
+      }
+
+      .my-custom-close-button {
+        background-color: #6c757d; /* Серый */
+        color: white;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 4px;
+        font-size: 0.9em;
+        width: 100%; /* Растягиваем */
+        display: block; /* Убедимся что он блочный */
+        margin-top: 10px;
+        transition: background-color 0.2s ease;
+      }
+      .my-custom-close-button:hover {
+        background-color: #5a6268;
+      }
+
+      /* Можно добавить стили для скрытия/показа, если не управлять через style.display */
+      /* .my-custom-input, .my-custom-save-button { display: block; } */
+      /* .my-custom-success, .my-custom-close-button { display: none; } */
+      /* .success-state .my-custom-input, .success-state .my-custom-save-button { display: none; } */
+      /* .success-state .my-custom-success, .success-state .my-custom-close-button { display: block; } */
+    </style>
+  </head>
+  <body>
+    <h1>Тест Universal Phone Setter (Кастомный)</h1>
+    <p>
+      Нажмите кнопку, чтобы ввести номер (с использованием кастомных опций).
+    </p>
+    <button id="set-phone-button-custom">Установить номер (Кастом.)</button>
+
+    <script src="dist/index.umd.js"></script>
+
+    <script>
+      // Определяем кастомные опции
+      const customOptions = {
+        inputPlaceholder: "Ваш номер телефона...",
+        saveButtonText: "Сохранить номер",
+        successMessageTemplate: (phone) =>
+          `Отлично! Ваш номер ${phone} был сохранен.`,
+        closeButtonText: "Ok",
+        errorMessages: {
+          empty: "Номер не может быть пустым!",
+          storage: "Упс! Ошибка сохранения.",
+        },
+        classNames: {
+          overlay: "my-custom-overlay", // Используем свои классы
+          modal: "my-custom-modal",
+          input: "my-custom-input",
+          saveButton: "my-custom-save-button",
+          successMessage: "my-custom-success",
+          closeButton: "my-custom-close-button",
+        },
+        allowDismissByOverlay: true, // Разрешаем закрытие кликом по фону
+      };
+
+      // Добавляем обработчик на кнопку
+      document
+        .getElementById("set-phone-button-custom")
+        .addEventListener("click", async () => {
+          try {
+            console.log("Открытие кастомного модального окна...");
+            // Вызываем setPhone с передачей объекта опций
+            const savedPhoneNumber = await UniversalPhoneSetter.setPhone(
+              customOptions
+            );
+
+            if (savedPhoneNumber) {
+              console.log(
+                `Номер сохранен через кастомное окно: ${savedPhoneNumber}`
+              );
+              alert(`Сохранен номер: ${savedPhoneNumber}`); // Показываем для наглядности
+            } else {
+              console.log(
+                "Модальное окно было закрыто без сохранения (например, кликом по фону)."
+              );
+              alert("Окно закрыто без сохранения."); // Показываем для наглядности
+            }
+          } catch (error) {
+            console.error("Произошла ошибка при вызове setPhone:", error);
+            alert("Произошла ошибка!");
+          }
+        });
+    </script>
+    <hr />
+    <h2>Тест с настройками по умолчанию</h2>
+    <p>Эта кнопка использует стандартные настройки.</p>
+    <button id="set-phone-button-default">Установить номер (Станд.)</button>
+    <script>
+      // Тест стандартного вызова для проверки обратной совместимости
+      document
+        .getElementById("set-phone-button-default")
+        .addEventListener("click", async () => {
+          try {
+            console.log("Открытие стандартного модального окна...");
+            const savedPhoneNumber = await UniversalPhoneSetter.setPhone(); // Без опций
+            if (savedPhoneNumber) {
+              console.log(
+                `Номер сохранен через стандартное окно: ${savedPhoneNumber}`
+              );
+              alert(`Сохранен номер: ${savedPhoneNumber}`);
+            } else {
+              // С настройками по умолчанию этот блок не должен вызываться,
+              // так как allowDismissByOverlay=false и resolve(null) не происходит без сохранения
+              console.log(
+                "Стандартное окно закрыто без сохранения (неожиданно)."
+              );
+            }
+          } catch (error) {
+            console.error(
+              "Произошла ошибка при вызове setPhone (стандарт):",
+              error
+            );
+            alert("Произошла ошибка!");
+          }
+        });
+    </script>
+  </body>
+</html>
