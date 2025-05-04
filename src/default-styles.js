@@ -6,29 +6,29 @@ export const DEFAULT_STYLES = `
 }
 .usp-modal {
   background: white;
-  padding: 1.5rem;
-  border-radius: 5px;
-  min-width: 300px;
+  padding: 1.5rem; /* ছিল 1.5rem */
+  border-radius: 0.3125rem; /* 5px -> 0.3125rem */
+  min-width: 18.75rem; /* 300px -> 18.75rem */
   text-align: center;
   /* display, flex-direction remain inline in index.js */
-  gap: 0.75rem;
+  gap: 0.75rem; /* ছিল 0.75rem */
 }
 .usp-input {
   /* display: block; */ /* Controlled by parent flex layout */
-  width: calc(100% - 16px); /* Approximate width calculation */
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+  width: calc(100% - 1rem); /* 16px -> 1rem */
+  padding: 0.5rem; /* 8px -> 0.5rem */
+  border: 1px solid #ccc; /* Keep 1px border */
+  border-radius: 0.1875rem; /* 3px -> 0.1875rem */
 }
 .usp-error-message {
   color: red;
-  min-height: 1.2em; /* Reserve space */
-  font-size: 0.9em;
-  margin-top: -0.25rem;
-  margin-bottom: 0.25rem;
+  min-height: 1.2em; /* Relative unit */
+  font-size: 0.9em; /* Relative unit */
+  margin-top: -0.25rem; /* ছিল -0.25rem */
+  margin-bottom: 0.25rem; /* ছিল 0.25rem */
   text-align: left;
   visibility: hidden; /* Hidden by default, but occupies space */
-  transition: visibility 0s linear 0.1s; /* Slight delay before hiding if needed */
+  transition: visibility 0s linear 0.1s;
 }
 .usp-error-message--visible { /* Class to show the error */
   visibility: visible;
@@ -38,9 +38,9 @@ export const DEFAULT_STYLES = `
 .usp-close-button {
   /* display: block; */ /* Controlled by parent flex layout */
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
+  padding: 0.625rem; /* 10px -> 0.625rem */
+  border: 1px solid #ccc; /* Keep 1px border */
+  border-radius: 0.1875rem; /* 3px -> 0.1875rem */
   cursor: pointer;
   background-color: #eee;
   /* visibility controlled by parent state class */
@@ -51,8 +51,8 @@ export const DEFAULT_STYLES = `
 }
 .usp-success-message {
   color: green;
-  margin: 0.5rem 0;
-  min-height: 1.2em; /* Reserve space like error for stability */
+  margin: 0.5rem 0; /* ছিল 0.5rem */
+  min-height: 1.2em; /* Relative unit */
   /* visibility controlled by parent state class */
 }
 

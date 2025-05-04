@@ -1,0 +1,102 @@
+body {
+  font-family: sans-serif;
+  padding: 1.25rem;
+}
+button {
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  margin: 0.3125rem 0;
+}
+
+.my-custom-overlay {
+  backdrop-filter: blur(0.1875rem);
+  background-color: rgba(0, 50, 100, 0.6);
+}
+
+.my-custom-modal {
+  background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
+  border: 1px solid #b0c4de;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.25rem 0.9375rem rgba(0, 0, 0, 0.2);
+  padding: 1.5625rem;
+  width: 21.875rem;
+  gap: 1rem;
+  height: 21rem;
+}
+
+.my-custom-input {
+  border: 1px solid #778899;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 1em;
+  width: calc(100% - 1.625rem);
+}
+
+.my-custom-error {
+  color: #dc3545;
+  font-size: 0.85em;
+  text-align: left;
+  min-height: 1.2em;
+  visibility: hidden;
+  margin: 0;
+  padding: 0.9375rem;
+}
+
+.my-custom-error.my-custom-error--visible {
+  visibility: visible;
+}
+
+.my-custom-save-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.25rem;
+  font-size: 1em;
+  width: 100%;
+  transition: background-color 0.2s ease;
+}
+.my-custom-save-button:hover {
+  background-color: #218838;
+}
+
+.my-custom-success {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 0.9375rem;
+  border-radius: 0.25rem;
+  font-weight: bold;
+  height: 2.2em;
+  visibility: hidden;
+  margin: 0;
+}
+
+.my-custom-close-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 0.625rem 0.9375rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+  width: 100%;
+  transition: background-color 0.2s ease;
+  margin-top: 0.625rem;
+}
+.my-custom-close-button:hover {
+  background-color: #5a6268;
+}
+
+.my-custom-modal.my-custom-modal--state-success .my-custom-input,
+.my-custom-modal.my-custom-modal--state-success .my-custom-save-button {
+  visibility: hidden;
+}
+
+.my-custom-modal.my-custom-modal--state-success .my-custom-error {
+  visibility: hidden;
+}
+
+.my-custom-modal.my-custom-modal--state-success .my-custom-success,
+.my-custom-modal.my-custom-modal--state-success .my-custom-close-button {
+  visibility: visible;
+}
