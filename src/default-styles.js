@@ -1,8 +1,8 @@
 export const DEFAULT_STYLES = `
 .usp-overlay {
   background-color: rgba(0,0,0,0.5);
-  /* Стили для позиционирования остаются инлайн в index.js */
-  /* display, justify-content, align-items остаются инлайн в index.js */
+  /* Positioning styles remain inline in index.js */
+  /* display, justify-content, align-items remain inline in index.js */
 }
 .usp-modal {
   background: white;
@@ -10,40 +10,40 @@ export const DEFAULT_STYLES = `
   border-radius: 5px;
   min-width: 300px;
   text-align: center;
-  /* display, flex-direction остаются инлайн в index.js */
+  /* display, flex-direction remain inline in index.js */
   gap: 0.75rem;
 }
 .usp-input {
-  /* display: block; */ /* Управляется компоновкой flex родителя */
-  width: calc(100% - 16px); /* Примерный расчет ширины */
+  /* display: block; */ /* Controlled by parent flex layout */
+  width: calc(100% - 16px); /* Approximate width calculation */
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 3px;
 }
 .usp-error-message {
   color: red;
-  min-height: 1.2em; /* Резервируем место */
+  min-height: 1.2em; /* Reserve space */
   font-size: 0.9em;
   margin-top: -0.25rem;
   margin-bottom: 0.25rem;
   text-align: left;
-  visibility: hidden; /* Скрыто по умолчанию, но занимает место */
-  transition: visibility 0s linear 0.1s; /* Небольшая задержка перед скрытием */
+  visibility: hidden; /* Hidden by default, but occupies space */
+  transition: visibility 0s linear 0.1s; /* Slight delay before hiding if needed */
 }
-.usp-error-message--visible { /* Класс для показа ошибки */
+.usp-error-message--visible { /* Class to show the error */
   visibility: visible;
   transition-delay: 0s;
 }
 .usp-save-button,
 .usp-close-button {
-  /* display: block; */ /* Управляется компоновкой flex родителя */
+  /* display: block; */ /* Controlled by parent flex layout */
   width: 100%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 3px;
   cursor: pointer;
   background-color: #eee;
-  /* visibility управляется классом состояния родителя */
+  /* visibility controlled by parent state class */
 }
 .usp-save-button:hover,
 .usp-close-button:hover {
@@ -52,30 +52,29 @@ export const DEFAULT_STYLES = `
 .usp-success-message {
   color: green;
   margin: 0.5rem 0;
-  min-height: 1.2em; /* Резервируем место как у ошибки для стабильности */
-  /* visibility управляется классом состояния родителя */
+  min-height: 1.2em; /* Reserve space like error for stability */
+  /* visibility controlled by parent state class */
 }
 
-/* --- Управление состояниями через класс на .usp-modal --- */
+/* --- State management via class on .usp-modal --- */
 
-/* Начальное состояние: все элементы видимы, кроме явно скрытых ниже */
-/* Скрываем элементы успеха и кнопку закрытия по умолчанию */
+/* Initial state: hide success elements */
 .usp-modal .usp-success-message,
 .usp-modal .usp-close-button {
   visibility: hidden;
 }
 
-/* Состояние успеха: добавляется класс --state-success к .usp-modal (или кастомному классу) */
-/* Скрываем элементы ввода */
+/* Success state: --state-success class is added to .usp-modal (or custom class) */
+/* Hide input elements */
 .usp-modal--state-success .usp-input,
 .usp-modal--state-success .usp-save-button {
   visibility: hidden;
 }
-/* Скрываем ошибку, даже если она была видима */
+/* Hide error message, even if it was visible */
 .usp-modal--state-success .usp-error-message {
   visibility: hidden;
 }
-/* Показываем элементы успеха */
+/* Show success elements */
 .usp-modal--state-success .usp-success-message,
 .usp-modal--state-success .usp-close-button {
   visibility: visible;

@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Тест Universal Phone Setter (Кастомный)</title>
+    <title>Universal Phone Setter Test (Custom)</title>
     <style>
-      /* Базовые стили для демонстрации */
+      /* Basic demo styles */
       body {
         font-family: sans-serif;
         padding: 20px;
@@ -13,11 +13,11 @@
       button {
         cursor: pointer;
         padding: 8px 12px;
-        /* margin: 5px 0; */
+        /* margin: 5px 0; */ /* Removed default margin for consistency */
       }
 
-      /* --- Стили для кастомных классов --- */
-      /* (Переопределяют внедренные стили по умолчанию) */
+      /* --- Styles for custom classes --- */
+      /* (These override the injected default styles) */
       .my-custom-overlay {
         backdrop-filter: blur(3px);
         background-color: rgba(0, 50, 100, 0.6);
@@ -29,11 +29,10 @@
         border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         padding: 25px;
-        min-width: 350px;
+        width: 350px;
         gap: 1rem;
-        /* Высота окна теперь должна быть стабильной */
-        /* Можно задать min-height для гарантии, если нужно */
-        /* min-height: 180px; */
+        /* Modal height should now be stable */
+        /* height: 180px; */
       }
 
       .my-custom-input {
@@ -42,19 +41,20 @@
         border-radius: 4px;
         font-size: 1em;
         width: calc(100% - 26px);
-        /* visibility управляется через класс состояния родителя */
+        /* visibility controlled by parent state class */
       }
 
       .my-custom-error {
         color: #dc3545;
         font-size: 0.85em;
         text-align: left;
-        min-height: 1.2em; /* Важно для резервирования места */
-        visibility: hidden; /* Скрыт по умолчанию */
-        /* Переопределяем дефолтные отступы если нужно */
+        min-height: 1.2em; /* Important for reserving space */
+        visibility: hidden; /* Hidden by default */
+        padding: 15px;
+        /* Override default margins */
         margin: 0;
       }
-      /* Показываем ошибку через класс --visible */
+      /* Show error via --visible class */
       .my-custom-error.my-custom-error--visible {
         visibility: visible;
       }
@@ -68,7 +68,7 @@
         font-size: 1em;
         width: 100%;
         transition: background-color 0.2s ease;
-        /* visibility управляется через класс состояния родителя */
+        /* visibility controlled by parent state class */
       }
       .my-custom-save-button:hover {
         background-color: #218838;
@@ -81,147 +81,132 @@
         padding: 15px;
         border-radius: 4px;
         font-weight: bold;
-        min-height: 1.2em; /* Резервируем место */
-        /* visibility управляется через класс состояния родителя */
+        height: 2.2em; /* Reserve space */
+        visibility: hidden;
+        margin: 0;
       }
 
-      .my-custom-close-button {
-        background-color: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 4px;
-        font-size: 0.9em;
-        width: 100%;
-        transition: background-color 0.2s ease;
-        /* visibility управляется через класс состояния родителя */
-      }
-      .my-custom-close-button:hover {
-        background-color: #5a6268;
-      }
-
-      /* --- Переопределение видимости для состояния успеха --- */
-      /* Скрываем input и save button */
+      /* --- Override visibility for success state --- */
+      /* Hide input and save button */
       .my-custom-modal.my-custom-modal--state-success .my-custom-input,
       .my-custom-modal.my-custom-modal--state-success .my-custom-save-button {
         visibility: hidden;
       }
-      /* Скрываем ошибку (если она была видима) */
+      /* Hide error (if it was visible) */
       .my-custom-modal.my-custom-modal--state-success .my-custom-error {
         visibility: hidden;
       }
-      /* Показываем success и close button */
+      /* Show success and close button */
       .my-custom-modal.my-custom-modal--state-success .my-custom-success,
-      .my-custom-modal.my-custom-modal--state-success .my-custom-close-button {
+      .my-custom-modal.my-custom-modal--state-success {
         visibility: visible;
       }
     </style>
   </head>
   <body>
-    <h1>Тест Universal Phone Setter (Кастомный)</h1>
+    <h1>Universal Phone Setter Test (Custom)</h1>
     <p>
-      Нажмите кнопку, чтобы ввести номер (с использованием кастомных опций).
-      Окно не должно "прыгать" по высоте при появлении/исчезновении сообщений об
-      ошибке/успехе.
+      Click the button to set the phone number (using custom options). The
+      window height should not "jump" when error/success messages
+      appear/disappear.
     </p>
-    <button id="set-phone-button-custom">Установить номер (Кастом.)</button>
+    <button id="set-phone-button-custom">Set Number (Custom)</button>
 
     <script src="dist/index.umd.js"></script>
 
     <script>
-      // Определяем кастомные опции
+      // Define custom options
       const customOptions = {
-        inputPlaceholder: "Ваш номер телефона...",
-        saveButtonText: "Сохранить номер",
+        inputPlaceholder: "Your phone number...",
+        saveButtonText: "Save Number",
         successMessageTemplate: (phone) =>
-          `Отлично! Ваш номер ${phone} был сохранен.`,
-        closeButtonText: "Ok",
+          `Great! Your number ${phone} has been saved.`,
+        closeButtonText: "Close",
         storageKey: "customHtmlSamplePhone",
         errorMessages: {
-          empty: "Номер не может быть пустым!",
-          storage: "Упс! Ошибка сохранения в хранилище.",
+          empty: "Number cannot be empty!",
+          storage: "Oops! Storage saving error.",
         },
         classNames: {
           overlay: "my-custom-overlay",
-          modal: "my-custom-modal",
+          modal: "my-custom-modal", // State class will be my-custom-modal--state-success
           input: "my-custom-input",
-          errorDisplay: "my-custom-error", // Класс видимости будет my-custom-error--visible
+          errorDisplay: "my-custom-error", // Visibility class will be my-custom-error--visible
           saveButton: "my-custom-save-button",
           successMessage: "my-custom-success",
-          closeButton: "my-custom-close-button",
         },
         allowDismissByOverlay: true,
       };
 
-      // Добавляем обработчик на кнопку
+      // Add listener to the button
       document
         .getElementById("set-phone-button-custom")
         .addEventListener("click", async () => {
           try {
-            console.log("Открытие кастомного модального окна...");
+            console.log("Opening custom modal...");
+            // Use customOptions, including custom storageKey
             const savedPhoneNumber = await UniversalPhoneSetter.setPhone(
               customOptions
             );
 
             if (savedPhoneNumber) {
+              // Promise resolved with phone number
+              console.log(`Number saved via custom modal: ${savedPhoneNumber}`);
+              // Check localStorage with the correct key (for debugging)
               console.log(
-                `Номер сохранен через кастомное окно: ${savedPhoneNumber}`
-              );
-              console.log(
-                `Проверка localStorage [${customOptions.storageKey}]:`,
+                `Checking localStorage [${customOptions.storageKey}]:`,
                 localStorage.getItem(customOptions.storageKey)
               );
-              alert(`Сохранен номер: ${savedPhoneNumber}`);
+              alert(`Number saved: ${savedPhoneNumber}`);
             } else {
-              console.log(
-                "Модальное окно было закрыто без сохранения или после успеха."
-              );
-              alert("Окно закрыто без сохранения номера (или после успеха).");
+              // Promise resolved with null (closed without saving or after success)
+              console.log("Modal was closed without saving or after success.");
+              alert("Window closed without saving number (or after success).");
             }
           } catch (error) {
-            console.error(
-              "Произошла ошибка при вызове setPhone:",
-              error.message
-            );
-            alert(`Произошла ошибка: ${error.message}`);
+            // Catch promise rejections (e.g., localStorage error)
+            console.error("An error occurred calling setPhone:", error.message);
+            alert(`An error occurred: ${error.message}`);
           }
         });
     </script>
     <hr />
-    <h2>Тест с настройками по умолчанию</h2>
-    <p>Эта кнопка использует стандартные настройки (ключ 'userPhoneNumber').</p>
-    <button id="set-phone-button-default">Установить номер (Станд.)</button>
+    <h2>Test with default settings</h2>
+    <p>This button uses default settings (key 'userPhoneNumber').</p>
+    <button id="set-phone-button-default">Set Number (Default)</button>
     <script>
-      // Тест стандартного вызова для проверки обратной совместимости
+      // Test default call for backward compatibility check
       document
         .getElementById("set-phone-button-default")
         .addEventListener("click", async () => {
           try {
-            console.log("Открытие стандартного модального окна...");
+            console.log("Opening default modal...");
+            // Uses default options, including storageKey: 'userPhoneNumber'
             const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
             if (savedPhoneNumber) {
               console.log(
-                `Номер сохранен через стандартное окно: ${savedPhoneNumber}`
+                `Number saved via default modal: ${savedPhoneNumber}`
               );
+              // Check localStorage with the correct key (for debugging)
               console.log(
-                `Проверка localStorage ['userPhoneNumber']:`,
+                `Checking localStorage ['userPhoneNumber']:`,
                 localStorage.getItem("userPhoneNumber")
               );
-              alert(`Сохранен номер: ${savedPhoneNumber}`);
+              alert(`Number saved: ${savedPhoneNumber}`);
             } else {
+              // This block is called when closing after success
               console.log(
-                "Стандартное окно закрыто без сохранения (или после успеха)."
+                "Default modal closed without saving (or after success)."
               );
-              alert(
-                "Стандартное окно закрыто без сохранения (или после успеха)."
-              );
+              alert("Default window closed without saving (or after success).");
             }
           } catch (error) {
+            // Catch potential rejections
             console.error(
-              "Произошла ошибка при вызове setPhone (стандарт):",
+              "An error occurred calling setPhone (default):",
               error.message
             );
-            alert(`Стандартная ошибка: ${error.message}`);
+            alert(`Default error: ${error.message}`);
           }
         });
     </script>

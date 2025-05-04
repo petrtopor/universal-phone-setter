@@ -1,13 +1,14 @@
-// Импортируем стили из отдельного файла
+// Import styles from the separate file
 import { DEFAULT_STYLES } from "./default-styles.js";
 
-// Флаг для отслеживания внедрения стилей
+// Flag to track style injection
 let stylesInjected = false;
 
 /**
- * Внедряет строку CSS в head документа, если она еще не была внедрена.
- * @param {string} cssString Строка с CSS правилами.
- * @param {string} styleId ID для создаваемого тега style, чтобы избежать дублирования.
+ * Injects a CSS string into the document's head if not already injected.
+ * @param {string} cssString The string containing CSS rules.
+ * @param {string} styleId The ID for the created style tag to prevent duplicates.
+ * @returns {boolean} True if styles were injected, false otherwise.
  */
 function injectStyles(cssString, styleId) {
   if (!document.getElementById(styleId)) {
@@ -21,49 +22,49 @@ function injectStyles(cssString, styleId) {
 }
 
 /**
- * Отображает модальное окно для ввода и сохранения номера телефона.
- * Базовые стили внедряются в <head> при первом вызове.
- * @param {object} [options] - Необязательный объект конфигурации.
- * @param {string} [options.inputPlaceholder='Введите номер телефона'] - Placeholder для поля ввода.
- * @param {string} [options.saveButtonText='Сохранить'] - Текст кнопки сохранения.
- * 'Успех! Номер сохранен: ${phone}'. Функция, принимающая номер телефона и возвращающая строку.
- * @param {(phone: string) => string} [options.successMessageTemplate]
- * @param {string} [options.closeButtonText='Закрыть'] - Текст кнопки закрытия.
- * @param {object} [options.errorMessages] - Тексты сообщений об ошибках.
- * @param {string} [options.errorMessages.empty='Пожалуйста, введите номер телефона.'] - Ошибка пустого ввода.
- * @param {string} [options.errorMessages.storage='Не удалось сохранить номер...'] - Ошибка сохранения в localStorage.
- * @param {string} [options.storageKey='userPhoneNumber'] - Ключ для сохранения номера в localStorage.
- * @param {object} [options.classNames] - CSS классы для элементов модального окна.
- * @param {string} [options.classNames.overlay='usp-overlay'] - Класс для оверлея.
- * @param {string} [options.classNames.modal='usp-modal'] - Класс для контейнера модального окна.
- * @param {string} [options.classNames.input='usp-input'] - Класс для поля ввода.
- * @param {string} [options.classNames.errorDisplay='usp-error-message'] - Класс для блока отображения ошибок.
- * @param {string} [options.classNames.saveButton='usp-save-button'] - Класс для кнопки сохранения.
- * @param {string} [options.classNames.successMessage='usp-success-message'] - Класс для сообщения об успехе.
- * @param {string} [options.classNames.closeButton='usp-close-button'] - Класс для кнопки закрытия.
- * @param {boolean} [options.allowDismissByOverlay=false] - Разрешить закрытие кликом по оверлею.
- * @returns {Promise<string | null>} Промис, который разрешается с введенным номером телефона при успехе,
- * null при закрытии через оверлей (если разрешено и произошло) или через кнопку "Закрыть" после успеха.
- * Промис может быть отклонен (rejected) при ошибке сохранения в localStorage.
+ * Displays a modal window for entering and saving a phone number.
+ * Base styles are injected into the <head> on the first call.
+ *
+ * @param {object} [options] - Optional configuration object.
+ * @param {string} [options.inputPlaceholder='Enter phone number'] - Placeholder for the input field.
+ * @param {string} [options.saveButtonText='Save'] - Text for the save button.
+ * @param {(phone: string) => string} [options.successMessageTemplate=(phone) => `Success! Number saved: ${phone}`] - Function that takes the phone number and returns the success message string.
+ * @param {string} [options.closeButtonText='Close'] - Text for the close button.
+ * @param {object} [options.errorMessages] - Object containing error message texts.
+ * @param {string} [options.errorMessages.empty='Please enter a phone number.'] - Error message for empty input.
+ * @param {string} [options.errorMessages.storage='Failed to save number.'] - Error message for localStorage failure.
+ * @param {string} [options.storageKey='userPhoneNumber'] - Key used to save the number in localStorage.
+ * @param {object} [options.classNames] - CSS class names for modal elements.
+ * @param {string} [options.classNames.overlay='usp-overlay'] - Class for the overlay element.
+ * @param {string} [options.classNames.modal='usp-modal'] - Class for the modal container element.
+ * @param {string} [options.classNames.input='usp-input'] - Class for the input field.
+ * @param {string} [options.classNames.errorDisplay='usp-error-message'] - Class for the error display element.
+ * @param {string} [options.classNames.saveButton='usp-save-button'] - Class for the save button.
+ * @param {string} [options.classNames.successMessage='usp-success-message'] - Class for the success message element.
+ * @param {string} [options.classNames.closeButton='usp-close-button'] - Class for the close button.
+ * @param {boolean} [options.allowDismissByOverlay=false] - Allow closing the modal by clicking the overlay.
+ * @returns {Promise<string | null>} A promise that resolves with the saved phone number (string) on success,
+ * or resolves with null if closed via overlay (if allowed) or the 'Close' button after success.
+ * The promise rejects with an Error on localStorage failure.
  */
 function setPhone(options) {
   return new Promise((resolve, reject) => {
-    // Внедряем стили один раз
+    // Inject styles once
     if (!stylesInjected) {
       stylesInjected = injectStyles(DEFAULT_STYLES, "usp-default-styles");
     }
 
-    // --- Значения по умолчанию ---
+    // --- Default Values ---
     const defaults = {
-      inputPlaceholder: "Введите номер телефона",
-      saveButtonText: "Сохранить",
-      successMessageTemplate: (phone) => `Успех! Номер сохранен: ${phone}`,
-      closeButtonText: "Закрыть",
+      inputPlaceholder: "Enter phone number",
+      saveButtonText: "Save",
+      successMessageTemplate: (phone) => `Success! Number saved: ${phone}`,
+      closeButtonText: "Close",
       storageKey: "userPhoneNumber",
       errorMessages: {
-        empty: "Пожалуйста, введите номер телефона.",
+        empty: "Please enter a phone number.",
         storage:
-          "Не удалось сохранить номер. Возможно, localStorage недоступен или переполнен.",
+          "Failed to save number. LocalStorage might be unavailable or full.",
       },
       classNames: {
         overlay: "usp-overlay",
@@ -77,7 +78,7 @@ function setPhone(options) {
       allowDismissByOverlay: false,
     };
 
-    // --- Объединение опций ---
+    // --- Merge Options ---
     const config = { ...defaults, ...options };
     config.errorMessages = {
       ...defaults.errorMessages,
@@ -88,14 +89,14 @@ function setPhone(options) {
       ...(options?.classNames || {}),
     };
 
-    // Суффиксы и полные классы состояний
+    // State class suffixes and full class names
     const successStateSuffix = "--state-success";
     const successStateClass = config.classNames.modal + successStateSuffix;
-    const errorVisibleSuffix = "--visible"; // Суффикс для класса видимости ошибки
+    const errorVisibleSuffix = "--visible";
     const errorVisibleClass =
       config.classNames.errorDisplay + errorVisibleSuffix;
 
-    // --- Создание элементов модального окна ---
+    // --- Create Modal Elements ---
     const modalOverlay = document.createElement("div");
     const modalContent = document.createElement("div");
     const input = document.createElement("input");
@@ -104,8 +105,8 @@ function setPhone(options) {
     const successMessage = document.createElement("p");
     const closeButton = document.createElement("button");
 
-    // --- Настройка элементов ---
-    // Оверлей
+    // --- Configure Elements (Minimal inline styles + Classes + Text) ---
+    // Overlay (only positioning and layout)
     modalOverlay.style.position = "fixed";
     modalOverlay.style.left = "0";
     modalOverlay.style.top = "0";
@@ -117,34 +118,34 @@ function setPhone(options) {
     modalOverlay.style.zIndex = "1000";
     modalOverlay.className = config.classNames.overlay;
 
-    // Контейнер модалки
+    // Modal container (only layout)
     modalContent.style.display = "flex";
     modalContent.style.flexDirection = "column";
-    modalContent.className = config.classNames.modal;
+    modalContent.className = config.classNames.modal; // Base class
 
-    // Поле ввода
+    // Input field
     input.type = "tel";
     input.placeholder = config.inputPlaceholder;
     input.className = config.classNames.input;
 
-    // Отображение ошибок
+    // Error display element
     errorDisplay.className = config.classNames.errorDisplay;
-    // Изначально скрыт через visibility: hidden в CSS
+    // Initially hidden via visibility: hidden in CSS
 
-    // Кнопка Сохранить
+    // Save button
     saveButton.textContent = config.saveButtonText;
     saveButton.className = config.classNames.saveButton;
 
-    // Сообщение об успехе
+    // Success message element
     successMessage.className = config.classNames.successMessage;
-    // Изначально скрыт через visibility: hidden в CSS
+    // Initially hidden via visibility: hidden in CSS
 
-    // Кнопка Закрыть
+    // Close button
     closeButton.textContent = config.closeButtonText;
     closeButton.className = config.classNames.closeButton;
-    // Изначально скрыт через visibility: hidden в CSS
+    // Initially hidden via visibility: hidden in CSS
 
-    // --- Сборка модального окна ---
+    // --- Assemble Modal ---
     modalContent.appendChild(input);
     modalContent.appendChild(errorDisplay);
     modalContent.appendChild(saveButton);
@@ -152,21 +153,22 @@ function setPhone(options) {
     modalContent.appendChild(closeButton);
     modalOverlay.appendChild(modalContent);
 
-    // --- Логика ---
+    // --- Logic ---
     let isSettled = false;
 
-    // Функция для скрытия ошибки (убираем текст и класс видимости)
+    // Function to hide the error (clear text and visibility class)
     const hideError = () => {
       errorDisplay.textContent = "";
       errorDisplay.classList.remove(errorVisibleClass);
     };
 
-    // Функция для показа ошибки (устанавливаем текст и класс видимости)
+    // Function to show the error (set text and add visibility class)
     const showError = (message) => {
       errorDisplay.textContent = message;
       errorDisplay.classList.add(errorVisibleClass);
     };
 
+    // Function to remove the modal and resolve the promise if not settled
     const cleanupAndClose = (resolutionValue = null) => {
       if (document.body.contains(modalOverlay)) {
         document.body.removeChild(modalOverlay);
@@ -177,45 +179,53 @@ function setPhone(options) {
       }
     };
 
+    // Add listener for closing via overlay click
     if (config.allowDismissByOverlay) {
       modalOverlay.addEventListener("click", (event) => {
+        // Only close if the click is directly on the overlay
         if (event.target === modalOverlay) {
           cleanupAndClose(null);
         }
       });
     }
 
-    // Убираем ошибку при вводе
+    // Add listener to clear error on input
     input.addEventListener("input", hideError);
 
+    // Add listener for the save button
     saveButton.addEventListener("click", () => {
       const phoneNumber = input.value.trim();
-      hideError(); // Сначала скрываем предыдущую ошибку
+      hideError(); // Hide previous error first
 
+      // Validate input
       if (!phoneNumber) {
-        showError(config.errorMessages.empty); // Показываем ошибку валидации
+        showError(config.errorMessages.empty); // Show validation error
         return;
       }
 
+      // Attempt to save
       try {
         localStorage.setItem(config.storageKey, phoneNumber);
 
-        // Переключаем на состояние успеха (CSS скроет инпут/кнопку/ошибку и покажет успех)
+        // Switch to success state (CSS handles hiding/showing elements)
         modalContent.classList.add(successStateClass);
-        // Обновляем текст сообщения об успехе
+        // Update success message text
         successMessage.textContent = config.successMessageTemplate(phoneNumber);
 
+        // Resolve the promise if not already settled
         if (!isSettled) {
           resolve(phoneNumber);
           isSettled = true;
         }
       } catch (error) {
+        // Handle storage error
         console.error(
-          `Ошибка сохранения в localStorage (ключ: ${config.storageKey}):`,
+          `Error saving to localStorage (key: ${config.storageKey}):`,
           error
         );
-        showError(config.errorMessages.storage); // Показываем ошибку сохранения
+        showError(config.errorMessages.storage); // Show storage error
 
+        // Reject the promise if not already settled
         if (!isSettled) {
           reject(new Error(config.errorMessages.storage));
           isSettled = true;
@@ -223,13 +233,14 @@ function setPhone(options) {
       }
     });
 
+    // Add listener for the close button (in success state)
     closeButton.addEventListener("click", () => cleanupAndClose(null));
 
-    // --- Добавление модального окна в DOM ---
+    // --- Add Modal to DOM ---
     document.body.appendChild(modalOverlay);
-    input.focus();
+    input.focus(); // Set focus to input on open
   });
 }
 
-// Экспортируем нашу единственную функцию
+// Export the main function
 export { setPhone };

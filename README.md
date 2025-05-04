@@ -60,7 +60,7 @@ const customOptions = {
   saveButtonText: "Save Number",
   successMessageTemplate: (phone) =>
     `Great! Your number ${phone} has been saved.`,
-  closeButtonText: "Ok",
+  closeButtonText: "Close",
   errorMessages: {
     empty: "Number cannot be empty!",
     storage: "Oops! Saving error.",
@@ -71,7 +71,6 @@ const customOptions = {
     input: "my-custom-input",
     saveButton: "my-custom-save-button",
     successMessage: "my-custom-success",
-    closeButton: "my-custom-close-button",
   },
   allowDismissByOverlay: true, // Allow closing by clicking the overlay
 };
