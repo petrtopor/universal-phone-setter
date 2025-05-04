@@ -10,8 +10,8 @@
     <h1>Universal Phone Setter Test (Custom)</h1>
     <p>
       Click the button to set the phone number (using custom options and
-      validation). The window height should not "jump" when error/success
-      messages appear/disappear.
+      validation requiring format like +7-999-999-99-99). The window height
+      should not "jump" when error/success messages appear/disappear.
     </p>
     <button id="set-phone-button-custom">Set Number (Custom)</button>
 
@@ -19,42 +19,53 @@
 
     <script>
       // Define a custom validation function for the example
+      // This validator requires format like +79999999999
       function myValidator(phone) {
-        const digitsOnly = phone.replace(/\D/g, ""); // Remove non-digits
-        if (!digitsOnly) {
-          return "Please enter some digits for the phone number.";
+        if (!phone) {
+          return "Phone number is required.";
         }
-        if (digitsOnly.length < 7) {
-          return "Phone number must have at least 7 digits.";
+        // Regex for format like +79999999999
+        // ^\+ : starts with a literal +
+        // \d+ : followed by one or more digits
+        // $   : end of string
+        const phoneRegex = /^\+\d+$/;
+        if (!phoneRegex.test(phone)) {
+          return "Invalid format. Use '+' followed only by digits (e.g., +71234567890)."; // Updated message
         }
-        if (digitsOnly.length > 15) {
-          return "Phone number seems too long (max 15 digits).";
+        // Optional: Check total length (e.g., '+' plus 7-15 digits => 8-16 chars total)
+        if (phone.length < 8) {
+          // Example: + plus 7 digits minimum
+          return "Phone number seems too short."; // Updated message
         }
-        // Could add more checks, like checking for specific prefixes etc.
+        if (phone.length > 16) {
+          // Example: + plus 15 digits maximum
+          return "Phone number seems too long."; // Updated message
+        }
+
         return null; // null means valid
       }
 
-      // Define custom options including the validator
+      // Define custom options including the updated validator
       const customOptions = {
-        inputPlaceholder: "Your phone number (7-15 digits)...",
+        inputPlaceholder: "Phone number like +7999...", // Updated placeholder
         saveButtonText: "Save Number",
         successMessageTemplate: (phone) =>
           `Great! Your number ${phone} has been saved.`,
-        closeButtonText: "Close", // Changed from 'Ok' for consistency
+        closeButtonText: "Close",
         storageKey: "customHtmlSamplePhone",
-        validatePhoneNumber: myValidator, // Assign the custom validator
+        validatePhoneNumber: myValidator, // Assign the updated custom validator
         errorMessages: {
-          // 'empty' is now handled by myValidator
+          // 'empty' is now handled by myValidator if needed, or use its message
           storage: "Oops! Storage saving error.",
         },
         classNames: {
           overlay: "my-custom-overlay",
-          modal: "my-custom-modal", // State class will be my-custom-modal--state-success
+          modal: "my-custom-modal",
           input: "my-custom-input",
           errorDisplay: "my-custom-error", // Visibility class will be my-custom-error--visible
           saveButton: "my-custom-save-button",
           successMessage: "my-custom-success",
-          closeButton: "my-custom-close-button", // Ensure this matches the CSS class
+          closeButton: "my-custom-close-button",
         },
         allowDismissByOverlay: true,
       };
@@ -94,7 +105,7 @@
     <h2>Test with default settings</h2>
     <p>
       This button uses default settings (key 'userPhoneNumber', default
-      validation).
+      validation - just non-empty).
     </p>
     <button id="set-phone-button-default">Set Number (Default)</button>
     <script>
