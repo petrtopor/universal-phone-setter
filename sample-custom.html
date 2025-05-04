@@ -13,7 +13,7 @@
       button {
         cursor: pointer;
         padding: 8px 12px; /* Немного паддинга кнопкам */
-        /* margin: 5px 0; */
+        margin: 5px 0;
       }
 
       /* Стили для кастомных классов */
@@ -38,7 +38,7 @@
       .my-custom-input {
         border: 1px solid #778899;
         padding: 12px;
-        /* margin-bottom: 5px; Уменьшим отступ снизу, т.к. ошибка будет под ним */
+        margin-bottom: 5px; /* Уменьшим отступ снизу, т.к. ошибка будет под ним */
         border-radius: 4px;
         font-size: 1em;
         display: block; /* Убедимся что он блочный */
@@ -51,7 +51,7 @@
         font-size: 0.85em;
         text-align: left; /* Выравнивание текста ошибки по левому краю */
         min-height: 1.2em; /* Резервируем место */
-        /* margin-bottom: 10px; Отступ снизу от ошибки до кнопки */
+        margin-bottom: 10px; /* Отступ снизу от ошибки до кнопки */
       }
 
       .my-custom-save-button {
@@ -88,18 +88,12 @@
         font-size: 0.9em;
         width: 100%; /* Растягиваем */
         display: block; /* Убедимся что он блочный */
-        /* margin-top: 10px; Отступ сверху */
+        margin-top: 10px; /* Отступ сверху */
         transition: background-color 0.2s ease;
       }
       .my-custom-close-button:hover {
         background-color: #5a6268;
       }
-
-      /* Можно добавить стили для скрытия/показа, если не управлять через style.display */
-      /* .my-custom-input, .my-custom-save-button { display: block; } */
-      /* .my-custom-success, .my-custom-close-button { display: none; } */
-      /* .success-state .my-custom-input, .success-state .my-custom-save-button { display: none; } */
-      /* .success-state .my-custom-success, .success-state .my-custom-close-button { display: block; } */
     </style>
   </head>
   <body>
@@ -119,20 +113,21 @@
         successMessageTemplate: (phone) =>
           `Отлично! Ваш номер ${phone} был сохранен.`,
         closeButtonText: "Ok",
+        storageKey: "customHtmlSamplePhone", // Демонстрация кастомного ключа
         errorMessages: {
           empty: "Номер не может быть пустым!",
-          storage: "Упс! Ошибка сохранения в хранилище.", // Уточненный текст
+          storage: "Упс! Ошибка сохранения в хранилище.",
         },
         classNames: {
-          overlay: "my-custom-overlay", // Используем свои классы
+          overlay: "my-custom-overlay",
           modal: "my-custom-modal",
           input: "my-custom-input",
-          errorDisplay: "my-custom-error", // Добавляем кастомный класс для ошибок
+          errorDisplay: "my-custom-error",
           saveButton: "my-custom-save-button",
           successMessage: "my-custom-success",
           closeButton: "my-custom-close-button",
         },
-        allowDismissByOverlay: true, // Разрешаем закрытие кликом по фону
+        allowDismissByOverlay: true,
       };
 
       // Добавляем обработчик на кнопку
@@ -141,7 +136,7 @@
         .addEventListener("click", async () => {
           try {
             console.log("Открытие кастомного модального окна...");
-            // Вызываем setPhone с передачей объекта опций
+            // Используем customOptions, включая custom storageKey
             const savedPhoneNumber = await UniversalPhoneSetter.setPhone(
               customOptions
             );
@@ -150,6 +145,11 @@
               // Промис разрешился с номером телефона
               console.log(
                 `Номер сохранен через кастомное окно: ${savedPhoneNumber}`
+              );
+              // Проверка, что сохранилось под правильным ключом (для отладки)
+              console.log(
+                `Проверка localStorage [${customOptions.storageKey}]:`,
+                localStorage.getItem(customOptions.storageKey)
               );
               alert(`Сохранен номер: ${savedPhoneNumber}`); // Показываем для наглядности
             } else {
@@ -171,7 +171,7 @@
     </script>
     <hr />
     <h2>Тест с настройками по умолчанию</h2>
-    <p>Эта кнопка использует стандартные настройки.</p>
+    <p>Эта кнопка использует стандартные настройки (ключ 'userPhoneNumber').</p>
     <button id="set-phone-button-default">Установить номер (Станд.)</button>
     <script>
       // Тест стандартного вызова для проверки обратной совместимости
@@ -180,10 +180,16 @@
         .addEventListener("click", async () => {
           try {
             console.log("Открытие стандартного модального окна...");
-            const savedPhoneNumber = await UniversalPhoneSetter.setPhone(); // Без опций
+            // Используются опции по умолчанию, включая storageKey: 'userPhoneNumber'
+            const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
             if (savedPhoneNumber) {
               console.log(
                 `Номер сохранен через стандартное окно: ${savedPhoneNumber}`
+              );
+              // Проверка, что сохранилось под правильным ключом (для отладки)
+              console.log(
+                `Проверка localStorage ['userPhoneNumber']:`,
+                localStorage.getItem("userPhoneNumber")
               );
               alert(`Сохранен номер: ${savedPhoneNumber}`);
             } else {
