@@ -1,5 +1,96 @@
+// Флаг для отслеживания внедрения стилей
+let stylesInjected = false;
+
+// Строка с CSS стилями по умолчанию
+const DEFAULT_STYLES = `
+.usp-overlay {
+  background-color: rgba(0,0,0,0.5);
+  /* Стили для позиционирования остаются инлайн */
+  /* display, justify-content, align-items остаются инлайн */
+}
+.usp-modal {
+  background: white;
+  padding: 1.5rem; /* Немного увеличим паддинг */
+  border-radius: 5px;
+  min-width: 300px;
+  text-align: center;
+  /* display, flex-direction остаются инлайн */
+  gap: 0.75rem; /* Немного увеличим gap */
+}
+.usp-input {
+  display: block;
+  width: calc(100% - 16px); /* Примерный расчет ширины */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+.usp-error-message {
+  color: red;
+  min-height: 1.2em;
+  font-size: 0.9em;
+  margin-top: -0.25rem; /* Подвинем чуть ближе к инпуту */
+  margin-bottom: 0.25rem;
+  text-align: left; /* Выровняем по левому краю */
+  /* Изначально пустой, не скрываем */
+}
+.usp-save-button,
+.usp-close-button {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  cursor: pointer;
+  background-color: #eee;
+}
+.usp-save-button:hover,
+.usp-close-button:hover {
+  background-color: #ddd;
+}
+.usp-success-message {
+  color: green;
+  margin: 0.5rem 0;
+}
+
+/* --- Управление состояниями через класс на .usp-modal --- */
+
+/* Начальное состояние: скрываем элементы успеха */
+.usp-modal .usp-success-message,
+.usp-modal .usp-close-button {
+  display: none;
+}
+
+/* Состояние успеха: добавляется класс --state-success к .usp-modal (или кастомному классу) */
+.usp-modal--state-success .usp-input,
+.usp-modal--state-success .usp-save-button,
+.usp-modal--state-success .usp-error-message {
+  display: none;
+}
+.usp-modal--state-success .usp-success-message,
+.usp-modal--state-success .usp-close-button {
+  display: block; /* Или другой нужный display */
+}
+`;
+
+/**
+ * Внедряет строку CSS в head документа, если она еще не была внедрена.
+ * @param {string} cssString Строка с CSS правилами.
+ * @param {string} styleId ID для создаваемого тега style, чтобы избежать дублирования.
+ */
+function injectStyles(cssString, styleId) {
+  if (!document.getElementById(styleId)) {
+    const styleElement = document.createElement("style");
+    styleElement.id = styleId;
+    styleElement.textContent = cssString;
+    document.head.appendChild(styleElement);
+    return true;
+  }
+  return false;
+}
+
 /**
  * Отображает модальное окно для ввода и сохранения номера телефона.
+ * Базовые стили внедряются в <head> при первом вызове.
  * @param {object} [options] - Необязательный объект конфигурации.
  * @param {string} [options.inputPlaceholder='Введите номер телефона'] - Placeholder для поля ввода.
  * @param {string} [options.saveButtonText='Сохранить'] - Текст кнопки сохранения.
@@ -24,15 +115,19 @@
  * Промис может быть отклонен (rejected) при ошибке сохранения в localStorage.
  */
 function setPhone(options) {
-  // Обертка в Promise теперь принимает resolve и reject
   return new Promise((resolve, reject) => {
+    // Внедряем стили один раз
+    if (!stylesInjected) {
+      stylesInjected = injectStyles(DEFAULT_STYLES, "usp-default-styles");
+    }
+
     // --- Значения по умолчанию ---
     const defaults = {
       inputPlaceholder: "Введите номер телефона",
       saveButtonText: "Сохранить",
       successMessageTemplate: (phone) => `Успех! Номер сохранен: ${phone}`,
       closeButtonText: "Закрыть",
-      storageKey: "userPhoneNumber", // Ключ по умолчанию для localStorage
+      storageKey: "userPhoneNumber",
       errorMessages: {
         empty: "Пожалуйста, введите номер телефона.",
         storage:
@@ -51,9 +146,7 @@ function setPhone(options) {
     };
 
     // --- Объединение опций ---
-    // Простое объединение для верхнего уровня (включая storageKey)
     const config = { ...defaults, ...options };
-    // Глубокое объединение для вложенных объектов (чтобы не перезатирать весь объект, если передана только часть)
     config.errorMessages = {
       ...defaults.errorMessages,
       ...(options?.errorMessages || {}),
@@ -62,6 +155,10 @@ function setPhone(options) {
       ...defaults.classNames,
       ...(options?.classNames || {}),
     };
+
+    // Суффикс класса для состояния успеха
+    const successStateSuffix = "--state-success";
+    const successStateClass = config.classNames.modal + successStateSuffix;
 
     // --- Создание элементов модального окна ---
     const modalOverlay = document.createElement("div");
@@ -72,30 +169,23 @@ function setPhone(options) {
     const successMessage = document.createElement("p");
     const closeButton = document.createElement("button");
 
-    // --- Настройка элементов (Стили + Классы + Текст из config) ---
-    // Оверлей
+    // --- Настройка элементов (Минимум инлайн стилей + Классы + Текст) ---
+    // Оверлей (только позиционирование и layout)
     modalOverlay.style.position = "fixed";
     modalOverlay.style.left = "0";
     modalOverlay.style.top = "0";
     modalOverlay.style.width = "100%";
     modalOverlay.style.height = "100%";
-    modalOverlay.style.backgroundColor = "rgba(0,0,0,0.5)";
     modalOverlay.style.display = "flex";
     modalOverlay.style.justifyContent = "center";
     modalOverlay.style.alignItems = "center";
     modalOverlay.style.zIndex = "1000";
     modalOverlay.className = config.classNames.overlay;
 
-    // Контейнер модалки
-    modalContent.style.background = "white";
-    modalContent.style.padding = "1rem";
-    modalContent.style.borderRadius = "5px";
-    modalContent.style.minWidth = "300px";
-    modalContent.style.textAlign = "center";
+    // Контейнер модалки (только layout)
     modalContent.style.display = "flex";
     modalContent.style.flexDirection = "column";
-    modalContent.style.gap = "0.5rem";
-    modalContent.className = config.classNames.modal;
+    modalContent.className = config.classNames.modal; // Базовый класс
 
     // Поле ввода
     input.type = "tel";
@@ -104,23 +194,20 @@ function setPhone(options) {
 
     // Отображение ошибок
     errorDisplay.className = config.classNames.errorDisplay;
-    errorDisplay.style.color = "red";
-    errorDisplay.style.minHeight = "1.2em";
-    errorDisplay.style.fontSize = "0.9em";
-    errorDisplay.style.marginTop = "0px";
+    // Стили для errorDisplay теперь в CSS
 
     // Кнопка Сохранить
     saveButton.textContent = config.saveButtonText;
     saveButton.className = config.classNames.saveButton;
 
     // Сообщение об успехе
-    successMessage.style.display = "none";
     successMessage.className = config.classNames.successMessage;
+    // display: none управляется через CSS и класс состояния
 
     // Кнопка Закрыть
     closeButton.textContent = config.closeButtonText;
-    closeButton.style.display = "none";
     closeButton.className = config.classNames.closeButton;
+    // display: none управляется через CSS и класс состояния
 
     // --- Сборка модального окна ---
     modalContent.appendChild(input);
@@ -154,28 +241,30 @@ function setPhone(options) {
     input.addEventListener("input", () => {
       if (errorDisplay.textContent) {
         errorDisplay.textContent = "";
+        // Можно также убирать класс ошибки с инпута, если он добавлялся
+        // input.classList.remove('usp-input--error');
       }
     });
 
     saveButton.addEventListener("click", () => {
       const phoneNumber = input.value.trim();
       errorDisplay.textContent = "";
+      // input.classList.remove('usp-input--error'); // Убираем класс ошибки, если был
 
       if (!phoneNumber) {
         errorDisplay.textContent = config.errorMessages.empty;
+        // Можно добавить класс ошибки к инпуту
+        // input.classList.add('usp-input--error');
         return;
       }
 
       try {
-        // Используем настроенный ключ для сохранения
         localStorage.setItem(config.storageKey, phoneNumber);
 
-        input.style.display = "none";
-        saveButton.style.display = "none";
-        errorDisplay.style.display = "none";
+        // Переключаем состояние через CSS класс
+        modalContent.classList.add(successStateClass);
+        // Обновляем текст сообщения об успехе
         successMessage.textContent = config.successMessageTemplate(phoneNumber);
-        successMessage.style.display = "block";
-        closeButton.style.display = "block";
 
         if (!isSettled) {
           resolve(phoneNumber);
@@ -187,6 +276,7 @@ function setPhone(options) {
           error
         );
         errorDisplay.textContent = config.errorMessages.storage;
+        // input.classList.add('usp-input--error'); // Можно добавить класс ошибки
 
         if (!isSettled) {
           reject(new Error(config.errorMessages.storage));
