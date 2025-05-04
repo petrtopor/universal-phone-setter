@@ -4,8 +4,6 @@ import { DEFAULT_STYLES } from "./default-styles.js";
 // Флаг для отслеживания внедрения стилей
 let stylesInjected = false;
 
-// Строка с CSS стилями по умолчанию УДАЛЕНА ОТСЮДА
-
 /**
  * Внедряет строку CSS в head документа, если она еще не была внедрена.
  * @param {string} cssString Строка с CSS правилами.
@@ -50,7 +48,7 @@ function injectStyles(cssString, styleId) {
  */
 function setPhone(options) {
   return new Promise((resolve, reject) => {
-    // Внедряем стили один раз (используя импортированную константу)
+    // Внедряем стили один раз
     if (!stylesInjected) {
       stylesInjected = injectStyles(DEFAULT_STYLES, "usp-default-styles");
     }
@@ -90,9 +88,12 @@ function setPhone(options) {
       ...(options?.classNames || {}),
     };
 
-    // Суффикс класса для состояния успеха
+    // Суффиксы и полные классы состояний
     const successStateSuffix = "--state-success";
     const successStateClass = config.classNames.modal + successStateSuffix;
+    const errorVisibleSuffix = "--visible"; // Суффикс для класса видимости ошибки
+    const errorVisibleClass =
+      config.classNames.errorDisplay + errorVisibleSuffix;
 
     // --- Создание элементов модального окна ---
     const modalOverlay = document.createElement("div");
@@ -103,8 +104,8 @@ function setPhone(options) {
     const successMessage = document.createElement("p");
     const closeButton = document.createElement("button");
 
-    // --- Настройка элементов (Минимум инлайн стилей + Классы + Текст) ---
-    // Оверлей (только позиционирование и layout)
+    // --- Настройка элементов ---
+    // Оверлей
     modalOverlay.style.position = "fixed";
     modalOverlay.style.left = "0";
     modalOverlay.style.top = "0";
@@ -116,10 +117,10 @@ function setPhone(options) {
     modalOverlay.style.zIndex = "1000";
     modalOverlay.className = config.classNames.overlay;
 
-    // Контейнер модалки (только layout)
+    // Контейнер модалки
     modalContent.style.display = "flex";
     modalContent.style.flexDirection = "column";
-    modalContent.className = config.classNames.modal; // Базовый класс
+    modalContent.className = config.classNames.modal;
 
     // Поле ввода
     input.type = "tel";
@@ -128,7 +129,7 @@ function setPhone(options) {
 
     // Отображение ошибок
     errorDisplay.className = config.classNames.errorDisplay;
-    // Стили для errorDisplay теперь в CSS
+    // Изначально скрыт через visibility: hidden в CSS
 
     // Кнопка Сохранить
     saveButton.textContent = config.saveButtonText;
@@ -136,12 +137,12 @@ function setPhone(options) {
 
     // Сообщение об успехе
     successMessage.className = config.classNames.successMessage;
-    // display: none управляется через CSS и класс состояния
+    // Изначально скрыт через visibility: hidden в CSS
 
     // Кнопка Закрыть
     closeButton.textContent = config.closeButtonText;
     closeButton.className = config.classNames.closeButton;
-    // display: none управляется через CSS и класс состояния
+    // Изначально скрыт через visibility: hidden в CSS
 
     // --- Сборка модального окна ---
     modalContent.appendChild(input);
@@ -153,6 +154,18 @@ function setPhone(options) {
 
     // --- Логика ---
     let isSettled = false;
+
+    // Функция для скрытия ошибки (убираем текст и класс видимости)
+    const hideError = () => {
+      errorDisplay.textContent = "";
+      errorDisplay.classList.remove(errorVisibleClass);
+    };
+
+    // Функция для показа ошибки (устанавливаем текст и класс видимости)
+    const showError = (message) => {
+      errorDisplay.textContent = message;
+      errorDisplay.classList.add(errorVisibleClass);
+    };
 
     const cleanupAndClose = (resolutionValue = null) => {
       if (document.body.contains(modalOverlay)) {
@@ -172,30 +185,22 @@ function setPhone(options) {
       });
     }
 
-    input.addEventListener("input", () => {
-      if (errorDisplay.textContent) {
-        errorDisplay.textContent = "";
-        // Можно также убирать класс ошибки с инпута, если он добавлялся
-        // input.classList.remove('usp-input--error');
-      }
-    });
+    // Убираем ошибку при вводе
+    input.addEventListener("input", hideError);
 
     saveButton.addEventListener("click", () => {
       const phoneNumber = input.value.trim();
-      errorDisplay.textContent = "";
-      // input.classList.remove('usp-input--error'); // Убираем класс ошибки, если был
+      hideError(); // Сначала скрываем предыдущую ошибку
 
       if (!phoneNumber) {
-        errorDisplay.textContent = config.errorMessages.empty;
-        // Можно добавить класс ошибки к инпуту
-        // input.classList.add('usp-input--error');
+        showError(config.errorMessages.empty); // Показываем ошибку валидации
         return;
       }
 
       try {
         localStorage.setItem(config.storageKey, phoneNumber);
 
-        // Переключаем состояние через CSS класс
+        // Переключаем на состояние успеха (CSS скроет инпут/кнопку/ошибку и покажет успех)
         modalContent.classList.add(successStateClass);
         // Обновляем текст сообщения об успехе
         successMessage.textContent = config.successMessageTemplate(phoneNumber);
@@ -209,8 +214,7 @@ function setPhone(options) {
           `Ошибка сохранения в localStorage (ключ: ${config.storageKey}):`,
           error
         );
-        errorDisplay.textContent = config.errorMessages.storage;
-        // input.classList.add('usp-input--error'); // Можно добавить класс ошибки
+        showError(config.errorMessages.storage); // Показываем ошибку сохранения
 
         if (!isSettled) {
           reject(new Error(config.errorMessages.storage));

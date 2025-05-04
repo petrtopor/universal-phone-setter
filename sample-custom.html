@@ -13,44 +13,53 @@
       button {
         cursor: pointer;
         padding: 8px 12px;
+        /* margin: 5px 0; */
       }
 
-      /* --- Стили для кастомных классов (теперь переопределяют внедренные стили) --- */
+      /* --- Стили для кастомных классов --- */
+      /* (Переопределяют внедренные стили по умолчанию) */
       .my-custom-overlay {
         backdrop-filter: blur(3px);
         background-color: rgba(0, 50, 100, 0.6);
       }
 
       .my-custom-modal {
-        /* Переопределяем внедренные стили */
         background: linear-gradient(to bottom right, #f0f4f8, #d9e2ec);
         border: 1px solid #b0c4de;
         border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         padding: 25px;
         min-width: 350px;
-        gap: 1rem; /* Увеличим gap для кастомного вида */
+        gap: 1rem;
+        /* Высота окна теперь должна быть стабильной */
+        /* Можно задать min-height для гарантии, если нужно */
+        /* min-height: 180px; */
       }
 
       .my-custom-input {
-        /* Переопределяем внедренные стили */
         border: 1px solid #778899;
         padding: 12px;
         border-radius: 4px;
         font-size: 1em;
         width: calc(100% - 26px);
+        /* visibility управляется через класс состояния родителя */
       }
 
       .my-custom-error {
-        /* Переопределяем внедренные стили */
         color: #dc3545;
         font-size: 0.85em;
         text-align: left;
-        min-height: 1.2em;
+        min-height: 1.2em; /* Важно для резервирования места */
+        visibility: hidden; /* Скрыт по умолчанию */
+        /* Переопределяем дефолтные отступы если нужно */
+        margin: 0;
+      }
+      /* Показываем ошибку через класс --visible */
+      .my-custom-error.my-custom-error--visible {
+        visibility: visible;
       }
 
       .my-custom-save-button {
-        /* Переопределяем внедренные стили */
         background-color: #28a745;
         color: white;
         border: none;
@@ -59,24 +68,24 @@
         font-size: 1em;
         width: 100%;
         transition: background-color 0.2s ease;
+        /* visibility управляется через класс состояния родителя */
       }
       .my-custom-save-button:hover {
         background-color: #218838;
       }
 
       .my-custom-success {
-        /* Переопределяем внедренные стили */
         color: #155724;
         background-color: #d4edda;
         border: 1px solid #c3e6cb;
-        padding: 15px; /* Увеличим паддинг */
+        padding: 15px;
         border-radius: 4px;
-        font-weight: bold; /* Сделаем жирным */
-        margin: 0;
+        font-weight: bold;
+        min-height: 1.2em; /* Резервируем место */
+        /* visibility управляется через класс состояния родителя */
       }
 
       .my-custom-close-button {
-        /* Переопределяем внедренные стили */
         background-color: #6c757d;
         color: white;
         border: none;
@@ -85,24 +94,26 @@
         font-size: 0.9em;
         width: 100%;
         transition: background-color 0.2s ease;
+        /* visibility управляется через класс состояния родителя */
       }
       .my-custom-close-button:hover {
         background-color: #5a6268;
       }
 
-      /* --- Пример стилизации для состояния успеха --- */
-      /* Когда к нашему кастомному модальному окну добавляется класс состояния */
-      .my-custom-modal.my-custom-modal--state-success {
-        /* Например, сделаем фон чуть темнее в состоянии успеха */
-        /* background: linear-gradient(to bottom right, #e1e8f0, #cdd7e1); */
-        /* Стили для скрытия/показа элементов уже есть во внедренных стилях, */
-        /* но можно и здесь их переопределить при необходимости */
+      /* --- Переопределение видимости для состояния успеха --- */
+      /* Скрываем input и save button */
+      .my-custom-modal.my-custom-modal--state-success .my-custom-input,
+      .my-custom-modal.my-custom-modal--state-success .my-custom-save-button {
+        visibility: hidden;
       }
-
-      /* Можно стилизовать элементы внутри успешного состояния */
-      .my-custom-modal.my-custom-modal--state-success .my-custom-success {
-        /* Дополнительные стили для текста успеха, если нужно */
-        /* border-left: 5px solid green; */
+      /* Скрываем ошибку (если она была видима) */
+      .my-custom-modal.my-custom-modal--state-success .my-custom-error {
+        visibility: hidden;
+      }
+      /* Показываем success и close button */
+      .my-custom-modal.my-custom-modal--state-success .my-custom-success,
+      .my-custom-modal.my-custom-modal--state-success .my-custom-close-button {
+        visibility: visible;
       }
     </style>
   </head>
@@ -110,6 +121,8 @@
     <h1>Тест Universal Phone Setter (Кастомный)</h1>
     <p>
       Нажмите кнопку, чтобы ввести номер (с использованием кастомных опций).
+      Окно не должно "прыгать" по высоте при появлении/исчезновении сообщений об
+      ошибке/успехе.
     </p>
     <button id="set-phone-button-custom">Установить номер (Кастом.)</button>
 
@@ -130,9 +143,9 @@
         },
         classNames: {
           overlay: "my-custom-overlay",
-          modal: "my-custom-modal", // Важно: класс состояния будет my-custom-modal--state-success
+          modal: "my-custom-modal",
           input: "my-custom-input",
-          errorDisplay: "my-custom-error",
+          errorDisplay: "my-custom-error", // Класс видимости будет my-custom-error--visible
           saveButton: "my-custom-save-button",
           successMessage: "my-custom-success",
           closeButton: "my-custom-close-button",
