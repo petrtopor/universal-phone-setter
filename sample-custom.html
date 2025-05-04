@@ -9,25 +9,42 @@
   <body>
     <h1>Universal Phone Setter Test (Custom)</h1>
     <p>
-      Click the button to set the phone number (using custom options). The
-      window height should not "jump" when error/success messages
-      appear/disappear.
+      Click the button to set the phone number (using custom options and
+      validation). The window height should not "jump" when error/success
+      messages appear/disappear.
     </p>
     <button id="set-phone-button-custom">Set Number (Custom)</button>
 
     <script src="dist/index.umd.js"></script>
 
     <script>
-      // Define custom options
+      // Define a custom validation function for the example
+      function myValidator(phone) {
+        const digitsOnly = phone.replace(/\D/g, ""); // Remove non-digits
+        if (!digitsOnly) {
+          return "Please enter some digits for the phone number.";
+        }
+        if (digitsOnly.length < 7) {
+          return "Phone number must have at least 7 digits.";
+        }
+        if (digitsOnly.length > 15) {
+          return "Phone number seems too long (max 15 digits).";
+        }
+        // Could add more checks, like checking for specific prefixes etc.
+        return null; // null means valid
+      }
+
+      // Define custom options including the validator
       const customOptions = {
-        inputPlaceholder: "Your phone number...",
+        inputPlaceholder: "Your phone number (7-15 digits)...",
         saveButtonText: "Save Number",
         successMessageTemplate: (phone) =>
           `Great! Your number ${phone} has been saved.`,
         closeButtonText: "Close", // Changed from 'Ok' for consistency
         storageKey: "customHtmlSamplePhone",
+        validatePhoneNumber: myValidator, // Assign the custom validator
         errorMessages: {
-          empty: "Number cannot be empty!",
+          // 'empty' is now handled by myValidator
           storage: "Oops! Storage saving error.",
         },
         classNames: {
@@ -48,7 +65,7 @@
         .addEventListener("click", async () => {
           try {
             console.log("Opening custom modal...");
-            // Use customOptions, including custom storageKey
+            // Use customOptions, including custom validator and storageKey
             const savedPhoneNumber = await UniversalPhoneSetter.setPhone(
               customOptions
             );
@@ -56,19 +73,18 @@
             if (savedPhoneNumber) {
               // Promise resolved with phone number
               console.log(`Number saved via custom modal: ${savedPhoneNumber}`);
-              // Check localStorage with the correct key (for debugging)
               console.log(
                 `Checking localStorage [${customOptions.storageKey}]:`,
                 localStorage.getItem(customOptions.storageKey)
               );
               alert(`Number saved: ${savedPhoneNumber}`);
             } else {
-              // Promise resolved with null (closed without saving or after success)
+              // Promise resolved with null
               console.log("Modal was closed without saving or after success.");
               alert("Window closed without saving number (or after success).");
             }
           } catch (error) {
-            // Catch promise rejections (e.g., localStorage error)
+            // Catch promise rejections
             console.error("An error occurred calling setPhone:", error.message);
             alert(`An error occurred: ${error.message}`);
           }
@@ -76,36 +92,35 @@
     </script>
     <hr />
     <h2>Test with default settings</h2>
-    <p>This button uses default settings (key 'userPhoneNumber').</p>
+    <p>
+      This button uses default settings (key 'userPhoneNumber', default
+      validation).
+    </p>
     <button id="set-phone-button-default">Set Number (Default)</button>
     <script>
-      // Test default call for backward compatibility check
+      // Test default call
       document
         .getElementById("set-phone-button-default")
         .addEventListener("click", async () => {
           try {
             console.log("Opening default modal...");
-            // Uses default options, including storageKey: 'userPhoneNumber'
             const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
             if (savedPhoneNumber) {
               console.log(
                 `Number saved via default modal: ${savedPhoneNumber}`
               );
-              // Check localStorage with the correct key (for debugging)
               console.log(
                 `Checking localStorage ['userPhoneNumber']:`,
                 localStorage.getItem("userPhoneNumber")
               );
               alert(`Number saved: ${savedPhoneNumber}`);
             } else {
-              // This block is called when closing after success
               console.log(
                 "Default modal closed without saving (or after success)."
               );
               alert("Default window closed without saving (or after success).");
             }
           } catch (error) {
-            // Catch potential rejections
             console.error(
               "An error occurred calling setPhone (default):",
               error.message

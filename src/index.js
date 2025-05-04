@@ -31,9 +31,10 @@ function injectStyles(cssString, styleId) {
  * @param {(phone: string) => string} [options.successMessageTemplate=(phone) => `Success! Number saved: ${phone}`] - Function that takes the phone number and returns the success message string.
  * @param {string} [options.closeButtonText='Close'] - Text for the close button.
  * @param {object} [options.errorMessages] - Object containing error message texts.
- * @param {string} [options.errorMessages.empty='Please enter a phone number.'] - Error message for empty input.
+ * @param {string} [options.errorMessages.empty='Please enter a phone number.'] - Default error message for empty input (used if no custom validator).
  * @param {string} [options.errorMessages.storage='Failed to save number.'] - Error message for localStorage failure.
  * @param {string} [options.storageKey='userPhoneNumber'] - Key used to save the number in localStorage.
+ * @param {(phone: string) => string | null | undefined} [options.validatePhoneNumber=null] - Custom function to validate the phone number. Should return an error message string if invalid, or null/undefined if valid. If provided, overrides the default empty check.
  * @param {object} [options.classNames] - CSS class names for modal elements.
  * @param {string} [options.classNames.overlay='usp-overlay'] - Class for the overlay element.
  * @param {string} [options.classNames.modal='usp-modal'] - Class for the modal container element.
@@ -61,8 +62,9 @@ function setPhone(options) {
       successMessageTemplate: (phone) => `Success! Number saved: ${phone}`,
       closeButtonText: "Close",
       storageKey: "userPhoneNumber",
+      validatePhoneNumber: null, // Default: no custom validation
       errorMessages: {
-        empty: "Please enter a phone number.",
+        empty: "Please enter a phone number.", // Default non-empty check message
         storage:
           "Failed to save number. LocalStorage might be unavailable or full.",
       },
@@ -80,6 +82,7 @@ function setPhone(options) {
 
     // --- Merge Options ---
     const config = { ...defaults, ...options };
+    // Deep merge for nested objects
     config.errorMessages = {
       ...defaults.errorMessages,
       ...(options?.errorMessages || {}),
@@ -105,8 +108,8 @@ function setPhone(options) {
     const successMessage = document.createElement("p");
     const closeButton = document.createElement("button");
 
-    // --- Configure Elements (Minimal inline styles + Classes + Text) ---
-    // Overlay (only positioning and layout)
+    // --- Configure Elements ---
+    // Overlay
     modalOverlay.style.position = "fixed";
     modalOverlay.style.left = "0";
     modalOverlay.style.top = "0";
@@ -118,7 +121,7 @@ function setPhone(options) {
     modalOverlay.style.zIndex = "1000";
     modalOverlay.className = config.classNames.overlay;
 
-    // Modal container (only layout)
+    // Modal container
     modalContent.style.display = "flex";
     modalContent.style.flexDirection = "column";
     modalContent.className = config.classNames.modal; // Base class
@@ -130,7 +133,6 @@ function setPhone(options) {
 
     // Error display element
     errorDisplay.className = config.classNames.errorDisplay;
-    // Initially hidden via visibility: hidden in CSS
 
     // Save button
     saveButton.textContent = config.saveButtonText;
@@ -138,12 +140,10 @@ function setPhone(options) {
 
     // Success message element
     successMessage.className = config.classNames.successMessage;
-    // Initially hidden via visibility: hidden in CSS
 
     // Close button
     closeButton.textContent = config.closeButtonText;
     closeButton.className = config.classNames.closeButton;
-    // Initially hidden via visibility: hidden in CSS
 
     // --- Assemble Modal ---
     modalContent.appendChild(input);
@@ -156,19 +156,19 @@ function setPhone(options) {
     // --- Logic ---
     let isSettled = false;
 
-    // Function to hide the error (clear text and visibility class)
+    // Function to hide the error
     const hideError = () => {
       errorDisplay.textContent = "";
       errorDisplay.classList.remove(errorVisibleClass);
     };
 
-    // Function to show the error (set text and add visibility class)
+    // Function to show the error
     const showError = (message) => {
       errorDisplay.textContent = message;
       errorDisplay.classList.add(errorVisibleClass);
     };
 
-    // Function to remove the modal and resolve the promise if not settled
+    // Function to remove the modal and resolve the promise
     const cleanupAndClose = (resolutionValue = null) => {
       if (document.body.contains(modalOverlay)) {
         document.body.removeChild(modalOverlay);
@@ -182,7 +182,6 @@ function setPhone(options) {
     // Add listener for closing via overlay click
     if (config.allowDismissByOverlay) {
       modalOverlay.addEventListener("click", (event) => {
-        // Only close if the click is directly on the overlay
         if (event.target === modalOverlay) {
           cleanupAndClose(null);
         }
@@ -197,22 +196,35 @@ function setPhone(options) {
       const phoneNumber = input.value.trim();
       hideError(); // Hide previous error first
 
-      // Validate input
-      if (!phoneNumber) {
-        showError(config.errorMessages.empty); // Show validation error
-        return;
+      // --- Input Validation ---
+      let validationError = null;
+      if (typeof config.validatePhoneNumber === "function") {
+        // Use custom validator if provided
+        validationError = config.validatePhoneNumber(phoneNumber);
+      } else {
+        // Use default non-empty check if no custom validator
+        if (!phoneNumber) {
+          validationError = config.errorMessages.empty;
+        }
       }
 
-      // Attempt to save
+      // If validation failed (returned a non-empty string)
+      if (validationError && typeof validationError === "string") {
+        showError(validationError);
+        return; // Stop processing
+      }
+      // --- End Input Validation ---
+
+      // Attempt to save (only if validation passed)
       try {
         localStorage.setItem(config.storageKey, phoneNumber);
 
-        // Switch to success state (CSS handles hiding/showing elements)
+        // Switch to success state
         modalContent.classList.add(successStateClass);
         // Update success message text
         successMessage.textContent = config.successMessageTemplate(phoneNumber);
 
-        // Resolve the promise if not already settled
+        // Resolve the promise
         if (!isSettled) {
           resolve(phoneNumber);
           isSettled = true;
@@ -225,7 +237,7 @@ function setPhone(options) {
         );
         showError(config.errorMessages.storage); // Show storage error
 
-        // Reject the promise if not already settled
+        // Reject the promise
         if (!isSettled) {
           reject(new Error(config.errorMessages.storage));
           isSettled = true;
@@ -233,7 +245,7 @@ function setPhone(options) {
       }
     });
 
-    // Add listener for the close button (in success state)
+    // Add listener for the close button
     closeButton.addEventListener("click", () => cleanupAndClose(null));
 
     // --- Add Modal to DOM ---
