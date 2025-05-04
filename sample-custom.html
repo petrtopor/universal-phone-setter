@@ -12,6 +12,8 @@
       }
       button {
         cursor: pointer;
+        padding: 8px 12px; /* Немного паддинга кнопкам */
+        /* margin: 5px 0; */
       }
 
       /* Стили для кастомных классов */
@@ -29,18 +31,27 @@
         border: 1px solid #b0c4de;
         border-radius: 8px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        padding: 30px;
+        padding: 25px; /* Немного уменьшим паддинг */
         min-width: 350px;
       }
 
       .my-custom-input {
         border: 1px solid #778899;
         padding: 12px;
-        margin-bottom: 15px;
+        /* margin-bottom: 5px; Уменьшим отступ снизу, т.к. ошибка будет под ним */
         border-radius: 4px;
         font-size: 1em;
         display: block; /* Убедимся что он блочный */
         width: calc(100% - 26px); /* Учитываем padding */
+      }
+
+      /* Стили для кастомного блока ошибок */
+      .my-custom-error {
+        color: #dc3545; /* Красный цвет для ошибки */
+        font-size: 0.85em;
+        text-align: left; /* Выравнивание текста ошибки по левому краю */
+        min-height: 1.2em; /* Резервируем место */
+        /* margin-bottom: 10px; Отступ снизу от ошибки до кнопки */
       }
 
       .my-custom-save-button {
@@ -53,6 +64,7 @@
         width: 100%; /* Растягиваем */
         display: block; /* Убедимся что он блочный */
         transition: background-color 0.2s ease;
+        margin-top: 0; /* Убираем верхний отступ, если он был */
       }
       .my-custom-save-button:hover {
         background-color: #218838;
@@ -64,7 +76,7 @@
         border: 1px solid #c3e6cb;
         padding: 10px;
         border-radius: 4px;
-        margin: 15px 0;
+        margin: 15px 0; /* Отступы сверху и снизу */
       }
 
       .my-custom-close-button {
@@ -76,7 +88,7 @@
         font-size: 0.9em;
         width: 100%; /* Растягиваем */
         display: block; /* Убедимся что он блочный */
-        margin-top: 10px;
+        /* margin-top: 10px; Отступ сверху */
         transition: background-color 0.2s ease;
       }
       .my-custom-close-button:hover {
@@ -109,12 +121,13 @@
         closeButtonText: "Ok",
         errorMessages: {
           empty: "Номер не может быть пустым!",
-          storage: "Упс! Ошибка сохранения.",
+          storage: "Упс! Ошибка сохранения в хранилище.", // Уточненный текст
         },
         classNames: {
           overlay: "my-custom-overlay", // Используем свои классы
           modal: "my-custom-modal",
           input: "my-custom-input",
+          errorDisplay: "my-custom-error", // Добавляем кастомный класс для ошибок
           saveButton: "my-custom-save-button",
           successMessage: "my-custom-success",
           closeButton: "my-custom-close-button",
@@ -134,19 +147,25 @@
             );
 
             if (savedPhoneNumber) {
+              // Промис разрешился с номером телефона
               console.log(
                 `Номер сохранен через кастомное окно: ${savedPhoneNumber}`
               );
               alert(`Сохранен номер: ${savedPhoneNumber}`); // Показываем для наглядности
             } else {
+              // Промис разрешился с null (закрытие без сохранения или после успеха)
               console.log(
-                "Модальное окно было закрыто без сохранения (например, кликом по фону)."
+                "Модальное окно было закрыто без сохранения или после успеха."
               );
-              alert("Окно закрыто без сохранения."); // Показываем для наглядности
+              alert("Окно закрыто без сохранения номера (или после успеха)."); // Показываем для наглядности
             }
           } catch (error) {
-            console.error("Произошла ошибка при вызове setPhone:", error);
-            alert("Произошла ошибка!");
+            // Ловим ошибки reject (например, ошибка localStorage)
+            console.error(
+              "Произошла ошибка при вызове setPhone:",
+              error.message
+            ); // Выводим сообщение из ошибки
+            alert(`Произошла ошибка: ${error.message}`); // Показываем ошибку пользователю
           }
         });
     </script>
@@ -168,18 +187,21 @@
               );
               alert(`Сохранен номер: ${savedPhoneNumber}`);
             } else {
-              // С настройками по умолчанию этот блок не должен вызываться,
-              // так как allowDismissByOverlay=false и resolve(null) не происходит без сохранения
+              // Этот блок вызывается при закрытии после успеха
               console.log(
-                "Стандартное окно закрыто без сохранения (неожиданно)."
+                "Стандартное окно закрыто без сохранения (или после успеха)."
+              );
+              alert(
+                "Стандартное окно закрыто без сохранения (или после успеха)."
               );
             }
           } catch (error) {
+            // Ловим возможные ошибки reject
             console.error(
               "Произошла ошибка при вызове setPhone (стандарт):",
-              error
+              error.message
             );
-            alert("Произошла ошибка!");
+            alert(`Стандартная ошибка: ${error.message}`);
           }
         });
     </script>

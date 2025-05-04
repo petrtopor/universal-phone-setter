@@ -13,15 +13,18 @@
  * @param {string} [options.classNames.overlay='usp-overlay'] - Класс для оверлея.
  * @param {string} [options.classNames.modal='usp-modal'] - Класс для контейнера модального окна.
  * @param {string} [options.classNames.input='usp-input'] - Класс для поля ввода.
+ * @param {string} [options.classNames.errorDisplay='usp-error-message'] - Класс для блока отображения ошибок.
  * @param {string} [options.classNames.saveButton='usp-save-button'] - Класс для кнопки сохранения.
  * @param {string} [options.classNames.successMessage='usp-success-message'] - Класс для сообщения об успехе.
  * @param {string} [options.classNames.closeButton='usp-close-button'] - Класс для кнопки закрытия.
  * @param {boolean} [options.allowDismissByOverlay=false] - Разрешить закрытие кликом по оверлею.
  * @returns {Promise<string | null>} Промис, который разрешается с введенным номером телефона при успехе,
- * или null при закрытии через оверлей (если разрешено и произошло).
+ * null при закрытии через оверлей (если разрешено и произошло) или через кнопку "Закрыть" после успеха.
+ * Промис может быть отклонен (rejected) при ошибке сохранения в localStorage.
  */
 function setPhone(options) {
-  return new Promise((resolve) => {
+  // Обертка в Promise теперь принимает resolve и reject
+  return new Promise((resolve, reject) => {
     // --- Значения по умолчанию ---
     const defaults = {
       inputPlaceholder: "Введите номер телефона",
@@ -37,6 +40,7 @@ function setPhone(options) {
         overlay: "usp-overlay",
         modal: "usp-modal",
         input: "usp-input",
+        errorDisplay: "usp-error-message", // Класс для блока ошибок
         saveButton: "usp-save-button",
         successMessage: "usp-success-message",
         closeButton: "usp-close-button",
@@ -61,6 +65,7 @@ function setPhone(options) {
     const modalOverlay = document.createElement("div");
     const modalContent = document.createElement("div");
     const input = document.createElement("input");
+    const errorDisplay = document.createElement("div"); // Элемент для отображения ошибок
     const saveButton = document.createElement("button");
     const successMessage = document.createElement("p");
     const closeButton = document.createElement("button"); // Кнопка для закрытия после успеха
@@ -87,7 +92,7 @@ function setPhone(options) {
     modalContent.style.textAlign = "center";
     modalContent.style.display = "flex";
     modalContent.style.flexDirection = "column";
-    modalContent.style.gap = "1rem";
+    modalContent.style.gap = "0.5rem"; // Уменьшим gap чтобы ошибка была ближе к инпуту
     modalContent.className = config.classNames.modal;
 
     // Поле ввода
@@ -99,6 +104,14 @@ function setPhone(options) {
     // input.style.width = "calc(100% - 16px)"; // Учитываем padding
     // input.style.padding = "8px";
     // input.style.marginBottom = "10px";
+
+    // Отображение ошибок
+    errorDisplay.className = config.classNames.errorDisplay;
+    // Базовые стили для видимости ошибки, можно переопределить через класс
+    errorDisplay.style.color = "red";
+    errorDisplay.style.minHeight = "1.2em"; // Чтобы не прыгала разметка
+    errorDisplay.style.fontSize = "0.9em";
+    errorDisplay.style.marginTop = "0px"; // Убрали лишний отступ сверху
 
     // Кнопка Сохранить
     saveButton.textContent = config.saveButtonText;
@@ -127,66 +140,86 @@ function setPhone(options) {
 
     // --- Сборка модального окна ---
     modalContent.appendChild(input);
+    modalContent.appendChild(errorDisplay); // Добавляем блок ошибок после инпута
     modalContent.appendChild(saveButton);
     modalContent.appendChild(successMessage);
     modalContent.appendChild(closeButton);
     modalOverlay.appendChild(modalContent);
 
     // --- Логика ---
-    let isResolved = false; // Флаг, чтобы избежать двойного разрешения промиса
+    let isSettled = false; // Флаг, чтобы избежать двойного разрешения/отклонения промиса
 
-    const closeModal = (resolutionValue = null) => {
+    const cleanupAndClose = (resolutionValue = null) => {
       if (document.body.contains(modalOverlay)) {
         document.body.removeChild(modalOverlay);
       }
-      if (!isResolved) {
-        resolve(resolutionValue); // Разрешаем промис (null при закрытии без сохранения)
-        isResolved = true;
+      if (!isSettled) {
+        resolve(resolutionValue); // Разрешаем промис (null при закрытии без сохранения/успеха)
+        isSettled = true;
       }
     };
 
     // Закрытие по клику вне модального окна (если разрешено)
     if (config.allowDismissByOverlay) {
       modalOverlay.addEventListener("click", (event) => {
+        // Закрываем только если клик был именно по оверлею, а не по его содержимому
         if (event.target === modalOverlay) {
-          closeModal(null); // Закрываем и разрешаем промис с null
+          cleanupAndClose(null); // Закрываем и разрешаем промис с null
         }
       });
     }
 
+    // Очистка ошибки при начале ввода
+    input.addEventListener("input", () => {
+      if (errorDisplay.textContent) {
+        errorDisplay.textContent = "";
+      }
+    });
+
+    // Обработчик кнопки Сохранить
     saveButton.addEventListener("click", () => {
       const phoneNumber = input.value.trim();
+      errorDisplay.textContent = ""; // Очищаем предыдущие ошибки
+
+      // Валидация
       if (!phoneNumber) {
-        alert(config.errorMessages.empty); // Простое уведомление
-        return;
+        errorDisplay.textContent = config.errorMessages.empty; // Показываем ошибку в блоке
+        return; // Не продолжаем
       }
 
+      // Попытка сохранения
       try {
         localStorage.setItem("userPhoneNumber", phoneNumber);
 
         // Переключаем состояние на "Успех"
         input.style.display = "none"; // Управляем видимостью напрямую
         saveButton.style.display = "none";
+        errorDisplay.style.display = "none"; // Скрываем блок ошибок в состоянии успеха
         successMessage.textContent = config.successMessageTemplate(phoneNumber);
         successMessage.style.display = "block";
         closeButton.style.display = "block";
 
-        // Резолвим промис с сохраненным номером
-        if (!isResolved) {
+        // Резолвим промис с сохраненным номером, если еще не урегулирован
+        if (!isSettled) {
           resolve(phoneNumber);
-          isResolved = true;
+          isSettled = true;
         }
       } catch (error) {
+        // Обработка ошибки сохранения
         console.error("Ошибка сохранения в localStorage:", error);
-        alert(config.errorMessages.storage);
-        // Возможно, стоит закрыть модалку и реджектнуть промис
-        // closeModal();
-        // if (!isResolved) { reject(error); isResolved = true; }
+        errorDisplay.textContent = config.errorMessages.storage; // Показываем ошибку хранения
+
+        // Отклоняем промис, если еще не урегулирован
+        if (!isSettled) {
+          // Передаем стандартный объект Error для лучшей практики
+          reject(new Error(config.errorMessages.storage));
+          isSettled = true;
+        }
       }
     });
 
     // Кнопка закрытия в состоянии успеха
-    closeButton.addEventListener("click", () => closeModal(null)); // Закрытие после успеха не возвращает номер
+    closeButton.addEventListener("click", () => cleanupAndClose(null)); // Закрытие после успеха не возвращает номер, а разрешает null
 
     // --- Добавление модального окна в DOM ---
     document.body.appendChild(modalOverlay);
