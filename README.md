@@ -1,231 +1,273 @@
 # Universal Phone Setter
 
-A simple, framework-agnostic frontend service packaged as an npm module. It provides a modal window for inputting and saving a user's phone number to `localStorage`.
+A framework-agnostic modal service to set and save a user's phone number.
+
+## Overview
+
+The **Universal Phone Setter** is a lightweight, framework-agnostic JavaScript package designed to provide a reusable modal for setting and saving a user's phone number. It is built to be easily integrated into any web project, regardless of the frontend framework being used (e.g., React, Vue, Angular, or plain HTML). The package exposes a single asynchronous method, `setPhone`, which handles the display of a modal, user input, validation, and storage of the phone number in the browser's `localStorage`.
+
+### Key Features
+
+- **Framework-Agnostic**: Works with any JavaScript project, including vanilla JS, React, Vue, and more.
+- **Customizable**: Allows customization of text, styles, validation, and behavior through an options object.
+- **Validation Support**: Provides default non-empty validation and supports custom validation functions.
+- **LocalStorage Integration**: Saves the phone number to `localStorage` for persistence.
+- **Promise-Based**: Returns a promise that resolves with the saved phone number or `null` if the modal is closed without saving.
+- **Accessible**: Includes focus management and error display for better user experience.
 
 ## Installation
+
+To install the package, use npm:
 
 ```bash
 npm install universal-phone-setter
 ```
 
-Or using yarn:
+Alternatively, you can include the UMD build directly in your HTML:
 
-```bash
-yarn add universal-phone-setter
+```html
+<script src="https://unpkg.com/universal-phone-setter@1.4.0/dist/index.umd.js"></script>
 ```
 
 ## Usage
 
-The package exports a single asynchronous function `setPhone`.
+### Basic Usage
 
-### Default Usage
+To use the `setPhone` method with default settings, simply call it as follows:
 
 ```javascript
-import { setPhone } from "universal-phone-setter";
+import { setPhone } from 'universal-phone-setter';
 
-// Example in a button click handler
-async function handleSetPhoneClick() {
+async function handleSetPhone() {
   try {
-    console.log("Opening default modal...");
-    const savedPhoneNumber = await setPhone(); // Shows the modal with default settings
+    const savedPhoneNumber = await setPhone();
     if (savedPhoneNumber) {
-      console.log(`Phone number saved successfully: ${savedPhoneNumber}`);
+      console.log(`Phone number saved: ${savedPhoneNumber}`);
     } else {
-      // This block won't be reached with default settings,
-      // as closing without saving is not allowed by default
-      console.log("Modal was closed without saving.");
+      console.log('Modal closed without saving.');
     }
   } catch (error) {
-    console.error("An error occurred:", error);
+    console.error('Error saving phone number:', error.message);
   }
-}
-
-// Attach handleSetPhoneClick to a button or other UI element
-const myButton = document.getElementById("set-phone-button");
-if (myButton) {
-  myButton.addEventListener("click", handleSetPhoneClick);
 }
 ```
 
-### Custom Usage with Options
+### Custom Options
 
-The `setPhone` function can accept an optional `options` object to customize the modal's appearance and behavior.
+You can customize the behavior and appearance of the modal by passing an options object to the `setPhone` method. Below is an example with custom settings:
 
 ```javascript
-import { setPhone } from "universal-phone-setter";
+import { setPhone } from 'universal-phone-setter';
 
-// Define custom options
 const customOptions = {
-  inputPlaceholder: "Your phone number...",
-  saveButtonText: "Save Number",
-  successMessageTemplate: (phone) =>
-    `Great! Your number ${phone} has been saved.`,
-  closeButtonText: "Close",
+  inputPlaceholder: 'Enter your phone number',
+  saveButtonText: 'Save Number',
+  successMessageTemplate: (phone) => `Success! Your number ${phone} has been saved.`,
+  closeButtonText: 'Close',
+  storageKey: 'customPhoneNumber',
+  validatePhoneNumber: (phone) => {
+    if (!phone) return 'Phone number is required.';
+    if (!/^\+\d+$/.test(phone)) return 'Invalid format. Use "+" followed by digits.';
+    return null;
+  },
   errorMessages: {
-    empty: "Number cannot be empty!",
-    storage: "Oops! Saving error.",
+    storage: 'Failed to save. Please try again.',
   },
   classNames: {
-    overlay: "my-custom-overlay",
-    modal: "my-custom-modal",
-    input: "my-custom-input",
-    saveButton: "my-custom-save-button",
-    successMessage: "my-custom-success",
+    overlay: 'custom-overlay',
+    modal: 'custom-modal',
+    input: 'custom-input',
+    errorDisplay: 'custom-error',
+    saveButton: 'custom-save-button',
+    successMessage: 'custom-success',
+    closeButton: 'custom-close-button',
   },
-  allowDismissByOverlay: true, // Allow closing by clicking the overlay
+  allowDismissByOverlay: true,
 };
 
-async function handleCustomSetPhoneClick() {
+async function handleSetPhoneCustom() {
   try {
-    console.log("Opening custom modal...");
     const savedPhoneNumber = await setPhone(customOptions);
     if (savedPhoneNumber) {
-      console.log(`Phone number saved via custom modal: ${savedPhoneNumber}`);
+      console.log(`Custom phone number saved: ${savedPhoneNumber}`);
     } else {
-      // This block can be reached if allowDismissByOverlay is true
-      // and the user clicks outside the modal
-      console.log("Modal was closed without saving (by clicking overlay).");
+      console.log('Custom modal closed without saving.');
     }
   } catch (error) {
-    console.error("An error occurred while calling setPhone:", error);
+    console.error('Error in custom setPhone:', error.message);
   }
-}
-
-// Attach handleCustomSetPhoneClick to another button
-const myCustomButton = document.getElementById("set-phone-button-custom");
-if (myCustomButton) {
-  myCustomButton.addEventListener("click", handleCustomSetPhoneClick);
 }
 ```
 
-### Usage in Browser (UMD via `<script>` tag)
+### Options
 
-Include the UMD build in your HTML file:
+The `setPhone` method accepts an optional `options` object with the following properties:
+
+- **inputPlaceholder** (`string`): Placeholder text for the phone number input field. Default: `'Enter phone number'`.
+- **saveButtonText** (`string`): Text for the save button. Default: `'Save'`.
+- **successMessageTemplate** (`(phone: string) => string`): A function that takes the saved phone number and returns the success message. Default: `(phone) => `Success! Number saved: ${phone}``.
+- **closeButtonText** (`string`): Text for the close button. Default: `'Close'`.
+- **storageKey** (`string`): The key used to save the phone number in `localStorage`. Default: `'userPhoneNumber'`.
+- **validatePhoneNumber** (`(phone: string) => string | null | undefined`): A custom validation function. If provided, it should return an error message string if the phone number is invalid, or `null`/`undefined` if valid. If not provided, a default non-empty check is used.
+- **errorMessages** (`object`): An object containing error message texts.
+  - **empty** (`string`): Error message for an empty input (used only if no custom validator is provided). Default: `'Please enter a phone number.'`.
+  - **storage** (`string`): Error message for `localStorage` failure. Default: `'Failed to save number.'`.
+- **classNames** (`object`): An object to customize the CSS class names for modal elements.
+  - **overlay** (`string`): Class for the overlay. Default: `'usp-overlay'`.
+  - **modal** (`string`): Class for the modal container. Default: `'usp-modal'`.
+  - **input** (`string`): Class for the input field. Default: `'usp-input'`.
+  - **errorDisplay** (`string`): Class for the error message element. Default: `'usp-error-message'`.
+  - **saveButton** (`string`): Class for the save button. Default: `'usp-save-button'`.
+  - **successMessage** (`string`): Class for the success message element. Default: `'usp-success-message'`.
+  - **closeButton** (`string`): Class for the close button. Default: `'usp-close-button'`.
+- **allowDismissByOverlay** (`boolean`): If `true`, allows closing the modal by clicking on the overlay. Default: `false`.
+
+### Styling
+
+The modal comes with default styles that are injected into the `<head>` of the document on the first call to `setPhone`. These styles can be overridden by providing custom class names via the `classNames` option and defining your own CSS rules.
+
+For example, to customize the modal's appearance, you can define styles for your custom classes:
+
+```css
+.custom-modal {
+  background: #f0f4f8;
+  border: 1px solid #b0c4de;
+  border-radius: 0.5rem;
+  padding: 1.5625rem;
+  width: 21.875rem;
+}
+.custom-input {
+  border: 1px solid #778899;
+  padding: 0.75rem;
+  border-radius: 0.25rem;
+  font-size: 1em;
+  width: calc(100% - 1.625rem);
+}
+/* Additional custom styles... */
+```
+
+### Validation
+
+By default, the modal performs a simple non-empty check on the phone number input. However, you can provide a custom validation function via the `validatePhoneNumber` option. This function should accept the phone number as a string and return an error message string if the input is invalid, or `null`/`undefined` if it is valid.
+
+Example of a custom validation function:
+
+```javascript
+function validatePhone(phone) {
+  if (!phone) return 'Phone number is required.';
+  if (!/^\+\d+$/.test(phone)) return 'Invalid format. Use "+" followed by digits.';
+  return null;
+}
+```
+
+### LocalStorage
+
+The phone number is saved to `localStorage` using the key specified in the `storageKey` option (default: `'userPhoneNumber'`). If `localStorage` is unavailable or an error occurs during saving, the promise will reject with an error message.
+
+## Examples
+
+### Example 1: Default Usage
 
 ```html
-<script src="node_modules/universal-phone-setter/dist/index.umd.js"></script>
-<button id="set-phone-button-html">Set Phone Number (Default)</button>
-<button id="set-phone-button-custom-html">Set Phone Number (Custom)</button>
+<button id="set-phone-button">Set Phone Number</button>
 
 <script>
-  // Default usage
-  document
-    .getElementById("set-phone-button-html")
-    .addEventListener("click", async () => {
-      try {
-        // The function is available globally via the name defined in rollup.config.mjs
-        const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
-        if (savedPhoneNumber) {
-          console.log(
-            `Phone number saved from HTML (default): ${savedPhoneNumber}`
-          );
-        }
-      } catch (error) {
-        console.error("Error (default):", error);
+  document.getElementById('set-phone-button').addEventListener('click', async () => {
+    try {
+      const savedPhoneNumber = await UniversalPhoneSetter.setPhone();
+      if (savedPhoneNumber) {
+        alert(`Phone number saved: ${savedPhoneNumber}`);
+      } else {
+        alert('Modal closed without saving.');
       }
-    });
-
-  // Custom usage
-  document
-    .getElementById("set-phone-button-custom-html")
-    .addEventListener("click", async () => {
-      const myOptions = {
-        inputPlaceholder: "Phone for UMD...",
-        saveButtonText: "Save (UMD)",
-        classNames: {
-          modal: "umd-custom-modal" /* Add other classes as needed */,
-        },
-        // Add CSS for .umd-custom-modal in your <style> or CSS file
-      };
-      try {
-        const savedPhoneNumber = await UniversalPhoneSetter.setPhone(myOptions);
-        if (savedPhoneNumber) {
-          console.log(
-            `Phone number saved from HTML (custom): ${savedPhoneNumber}`
-          );
-        } else {
-          console.log("UMD modal closed without saving.");
-        }
-      } catch (error) {
-        console.error("Error (custom):", error);
-      }
-    });
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  });
 </script>
 ```
 
-## Functionality
+### Example 2: Custom Usage with Validation
 
-- Calling `setPhone(options?)` displays a modal window over the rest of the content.
-- The modal contains an input field for the phone number and a "Save" button.
-- **Customization:** Behavior and appearance can be customized via the `options` object.
-- **Saving:** When "Save" is clicked:
-  - Checks that the input is not empty (error message is customizable).
-  - Saves the phone number to `localStorage` under the key `userPhoneNumber`.
-  - Displays a success message (template is customizable) and a "Close" button (text is customizable).
-  - The promise returned by `setPhone()` resolves with the saved phone number.
-- **Closing:**
-  - The "Close" button (after success) closes the modal. The promise resolves with `null`.
-  - If `allowDismissByOverlay: true`, clicking the overlay also closes the modal. The promise resolves with `null`.
-- **Styling:** Basic styles are applied for positioning and minimal structure. For detailed styling, use the CSS classes provided via `options.classNames` and override them in your CSS.
+```html
+<button id="set-phone-button-custom">Set Phone Number (Custom)</button>
 
-## Configuration Options
+<script>
+  const customOptions = {
+    inputPlaceholder: 'Enter phone number like +7999...',
+    validatePhoneNumber: (phone) => {
+      if (!phone) return 'Phone number is required.';
+      if (!/^\+\d+$/.test(phone)) return 'Invalid format. Use "+" followed by digits.';
+      return null;
+    },
+    classNames: {
+      modal: 'custom-modal',
+      input: 'custom-input',
+      // other class names...
+    },
+  };
 
-The `options` object passed to `setPhone(options)` can contain the following properties:
-
-| Property                    | Type                      | Default                                                                                                                                                                     | Description                                                  |
-| --------------------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `inputPlaceholder`          | string                    | `'Enter phone number'`                                                                                                                                                      | Placeholder text for the input field.                        |
-| `saveButtonText`            | string                    | `'Save'`                                                                                                                                                                    | Text on the save button.                                     |
-| `successMessageTemplate`    | (phone: string) => string | `(phone) => `Success! Phone number saved: ${phone}``                                                                                                                        | Function that generates the success message.                 |
-| `closeButtonText`           | string                    | `'Close'`                                                                                                                                                                   | Text on the close button (after success).                    |
-| `errorMessages`             | object                    | `{ empty: 'Please enter a phone number.', storage: 'Failed to save the number.' }`                                                                                          | Object with error messages.                                  |
-| `errorMessages.empty`       | string                    | `'Please enter a phone number.'`                                                                                                                                            | Message when trying to save an empty number.                 |
-| `errorMessages.storage`     | string                    | `'Failed to save the number.'`                                                                                                                                              | Message when there's an error saving to localStorage.        |
-| `classNames`                | object                    | `{ overlay: 'usp-overlay', modal: 'usp-modal', input: 'usp-input', saveButton: 'usp-save-button', successMessage: 'usp-success-message', closeButton: 'usp-close-button' }` | Object with CSS class names for modal elements.              |
-| `classNames.overlay`        | string                    | `'usp-overlay'`                                                                                                                                                             | Class for the overlay element.                               |
-| `classNames.modal`          | string                    | `'usp-modal'`                                                                                                                                                               | Class for the modal content container.                       |
-| `classNames.input`          | string                    | `'usp-input'`                                                                                                                                                               | Class for the input field.                                   |
-| `classNames.saveButton`     | string                    | `'usp-save-button'`                                                                                                                                                         | Class for the save button.                                   |
-| `classNames.successMessage` | string                    | `'usp-success-message'`                                                                                                                                                     | Class for the success message paragraph.                     |
-| `classNames.closeButton`    | string                    | `'usp-close-button'`                                                                                                                                                        | Class for the close button.                                  |
-| `allowDismissByOverlay`     | boolean                   | `false`                                                                                                                                                                     | If `true`, allows closing the modal by clicking the overlay. |
+  document.getElementById('set-phone-button-custom').addEventListener('click', async () => {
+    try {
+      const savedPhoneNumber = await UniversalPhoneSetter.setPhone(customOptions);
+      if (savedPhoneNumber) {
+        alert(`Custom phone number saved: ${savedPhoneNumber}`);
+      } else {
+        alert('Custom modal closed without saving.');
+      }
+    } catch (error) {
+      alert(`Custom error: ${error.message}`);
+    }
+  });
+</script>
+```
 
 ## Development
 
-- Clone the repository: `git clone <repository-url>`
-- Navigate to the directory: `cd universal-phone-setter`
-- Install dependencies: `npm install`
-- Build the project: `npm run build` (generates files in the `dist` directory)
+### Project Structure
 
-## Publishing New Versions (Automatic via GitHub Actions)
+The project is structured as follows:
 
-This project uses GitHub Actions to automatically publish new versions to npm whenever changes are pushed to the `main` branch.
+```
+.
+├── README.md
+├── dist
+│   ├── index.cjs.js
+│   ├── index.cjs.js.map
+│   ├── index.esm.js
+│   ├── index.esm.js.map
+│   ├── index.umd.js
+│   └── index.umd.js.map
+├── package-lock.json
+├── package.json
+├── rollup.config.mjs
+├── sample-custom.css
+├── sample-custom.html
+├── sample.html
+└── src
+    ├── default-styles.js
+    └── index.js
+```
 
-**Important:** The pipeline will only successfully publish if the version in `package.json` has been incremented since the last published version on npm.
+- **`src/index.js`**: Contains the main logic for the `setPhone` method.
+- **`src/default-styles.js`**: Contains the default CSS styles for the modal.
+- **`rollup.config.mjs`**: Configuration for Rollup to bundle the package into CJS, ESM, and UMD formats.
+- **`sample.html`** and **`sample-custom.html`**: Example HTML files demonstrating usage with default and custom settings.
 
-To release a new version:
+### Building the Project
 
-1. Ensure all code changes are committed.
-2. Switch to the `main` branch and update it:
-   ```bash
-   git checkout main
-   git pull origin main
-   ```
-3. (If necessary) Merge your feature branch into `main`:
-   ```bash
-   git merge your-feature-branch
-   ```
-4. Increment the package version using `npm`:
-   - For a patch release (bug fixes): `npm version patch -m "Upgrade to %s for [reason]"`
-   - For a minor release (new features): `npm version minor -m "Upgrade to %s for [reason]"`
-   - For a major release (breaking changes): `npm version major -m "Upgrade to %s for [reason]"`
-5. Push the changes and the new tag to GitHub:
-   ```bash
-   git push origin main --follow-tags
-   ```
+To build the project, run:
 
-This will trigger the GitHub Actions workflow to build and publish the new version to npm.
+```bash
+npm run build
+```
+
+This will generate the bundled files in the `dist` directory.
+
+### Testing
+
+Currently, there are no automated tests. Manual testing can be performed using the provided sample HTML files.
 
 ## License
 
-MIT
+This project is licensed under the MIT License.

@@ -1,27 +1,24 @@
 import terser from "@rollup/plugin-terser";
 
 export default {
-  input: "src/index.js", // Наш входной файл
+  input: "src/index.js",
   output: [
     {
-      file: "dist/index.cjs.js", // CommonJS (для Node)
+      file: "dist/index.cjs.js",
       format: "cjs",
       sourcemap: true,
     },
     {
-      file: "dist/index.esm.js", // ES Module (для бандлеров типа Webpack/Rollup)
+      file: "dist/index.esm.js",
       format: "esm",
       sourcemap: true,
     },
     {
-      file: "dist/index.umd.js", // UMD (для браузера через <script>)
+      file: "dist/index.umd.js",
       format: "umd",
-      name: "UniversalPhoneSetter", // Глобальная переменная для UMD
+      name: "UniversalPhoneSetter",
       sourcemap: true,
-      plugins: [terser()], // Минифицируем UMD версию
+      plugins: [terser()],
     },
-  ],
-  plugins: [
-    // Можно добавить другие плагины Rollup при необходимости
   ],
 };
